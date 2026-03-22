@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
+import { BrandLogo } from '@/components/brand-logo';
 import { projectTypeOptions } from '@/data/demo';
 import { getStoredMode, getDemoWorkspace, saveDemoWorkspace } from '@/lib/demo-store';
 import { createId } from '@/lib/utils';
@@ -20,10 +21,7 @@ export function PublicSite() {
     <div className="min-h-screen bg-white text-[#0A0A0A]">
       <header className="border-b border-black/10">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center bg-[#0A0A0A] text-white">VC</div>
-            <span className="text-sm font-semibold">VexCoding</span>
-          </div>
+          <BrandLogo iconSize="sm" textClassName="text-sm font-semibold text-[#0A0A0A]" />
           <Link href="/login" className="text-sm font-medium text-[#0A0A0A]">
             Area dos socios
           </Link>
