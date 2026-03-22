@@ -16,6 +16,7 @@ import {
   saveDemoWorkspace,
   setStoredMode,
 } from '@/lib/demo-store';
+import { officialSupabaseConfigError } from '@/lib/config';
 import { createId } from '@/lib/utils';
 import type {
   AppMode,
@@ -197,20 +198,22 @@ export function DashboardProvider({
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
-  const loadWorkspace = useCallback(async (nextMode: AppMode) => {
+  const loadWorkspace = useCallback(async (nextMode: AppMode, options?: { allowFallbackToDemo?: boolean }) => {
     setLoading(true);
     setError('');
 
     try {
       const data = nextMode === 'official' ? await api.loadOfficialWorkspace() : getDemoWorkspace();
       setWorkspace(data);
+      return true;
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Nao foi possivel carregar os dados.');
-      if (nextMode === 'official') {
+      if (nextMode === 'official' && options?.allowFallbackToDemo) {
         setModeState('demo');
         setStoredMode('demo');
         setWorkspace(getDemoWorkspace());
       }
+      return false;
     } finally {
       setLoading(false);
     }
@@ -219,7 +222,7 @@ export function DashboardProvider({
   useEffect(() => {
     const storedMode = getStoredMode();
     setModeState(storedMode);
-    loadWorkspace(storedMode);
+    void loadWorkspace(storedMode, { allowFallbackToDemo: true });
   }, [loadWorkspace]);
 
   const persistDemoWorkspace = (updater: (current: WorkspaceData) => WorkspaceData) => {
@@ -252,12 +255,26 @@ export function DashboardProvider({
 
   const setMode = async (nextMode: AppMode) => {
     clearFeedback();
-    if (nextMode === 'official') {
-      resetDemoWorkspace();
+
+    if (nextMode === mode) {
+      return;
     }
+
+    if (nextMode === 'official') {
+      const configError = officialSupabaseConfigError();
+      if (configError) {
+        setError(configError);
+        return;
+      }
+    }
+
+    const loaded = await loadWorkspace(nextMode);
+    if (!loaded) {
+      return;
+    }
+
     setModeState(nextMode);
     setStoredMode(nextMode);
-    await loadWorkspace(nextMode);
   };
 
   const reload = async () => {
