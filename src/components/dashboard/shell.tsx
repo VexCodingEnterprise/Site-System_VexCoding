@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { BrandLogo } from '@/components/brand-logo';
 import { cn, getInitials } from '@/lib/utils';
 import { useDashboard } from '@/components/providers/dashboard-provider';
 
@@ -58,9 +59,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center border-b border-[var(--line)] px-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center bg-[var(--text)] text-[var(--bg)]">
-            VC
-          </div>
+          <BrandLogo iconOnly iconSize="sm" />
           {!collapsed ? (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[var(--text)]">VexCoding</p>
