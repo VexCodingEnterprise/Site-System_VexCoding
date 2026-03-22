@@ -1,3 +1,4 @@
+HEAD
 <div align="center">
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0,000000,1a1a1a&height=200&section=header&text=VexCoding&fontSize=72&fontColor=ffffff&fontAlignY=38&desc=Código%20que%20move%20negócios&descAlignY=58&descSize=18&descColor=888888" width="100%"/>
@@ -7,6 +8,8 @@
 </div>
 
 
+
+>>>>>>> bca1643 (Initial commit)
 # VexCoding Workspace
 
 Base em `Next.js 14 + TypeScript + Tailwind CSS + Framer Motion + Supabase`, pronta para deploy na Netlify.
@@ -164,6 +167,7 @@ Em `Site settings > Environment variables`, adicione:
 - O modo oficial depende de `SUPABASE_SERVICE_ROLE_KEY` porque o app usa rotas server-side para escrita segura e upload de documentos.
 - O `SESSION_SECRET` e obrigatorio em producao para proteger o cookie da area interna.
 - O primeiro `next build` no Windows pode demorar alguns minutos por causa da compilacao completa do app.
+<<<<<<< HEAD
 
 
 <div align="center">
