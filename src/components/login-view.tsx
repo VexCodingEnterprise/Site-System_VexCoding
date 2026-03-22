@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { BrandLogo } from '@/components/brand-logo';
 
 export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }) {
@@ -11,6 +11,7 @@ export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }
   const [form, setForm] = useState({ username: '', password: '' });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     router.prefetch(redirectTo || '/dashboard');
@@ -52,7 +53,7 @@ export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }
                   throw new Error(payload.message || 'Nao foi possivel entrar.');
                 }
 
-                router.push(redirectTo || '/dashboard');
+                window.location.assign(redirectTo || '/dashboard');
               } catch (loginError) {
                 setMessage(loginError instanceof Error ? loginError.message : 'Nao foi possivel entrar.');
               } finally {
@@ -71,13 +72,23 @@ export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }
             </label>
             <label className="space-y-2">
               <span className="text-sm font-medium text-[var(--text)]">Senha</span>
-              <input
-                type="password"
-                className="field"
-                value={form.password}
-                onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                placeholder="Sua senha"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="field pr-12"
+                  value={form.password}
+                  onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                  placeholder="Sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[var(--muted)] transition hover:text-[var(--text)]"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </label>
 
             <button
