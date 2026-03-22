@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { env, hasOfficialSupabase } from '@/lib/config';
+import { env, hasOfficialSupabase, officialSupabaseConfigError } from '@/lib/config';
 
 export const supabaseAdmin = hasOfficialSupabase
   ? createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
@@ -12,7 +12,7 @@ export const supabaseAdmin = hasOfficialSupabase
 
 export const assertOfficialMode = () => {
   if (!supabaseAdmin) {
-    throw new Error('Supabase oficial nao configurado. Preencha as variaveis de ambiente do modo oficial.');
+    throw new Error(officialSupabaseConfigError() || 'Supabase oficial nao configurado.');
   }
 
   return supabaseAdmin;
