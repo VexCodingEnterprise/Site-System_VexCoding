@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { BrandLogo } from '@/components/brand-logo';
+import { demoClientPassword, signInDemoClient } from '@/lib/client-portal-demo';
 import { getBrowserSupabase, hasBrowserSupabaseConfig } from '@/lib/supabase';
 
 export function ClienteLoginPage() {
@@ -12,6 +13,7 @@ export function ClienteLoginPage() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     router.prefetch('/cliente/dashboard');
@@ -43,11 +45,13 @@ export function ClienteLoginPage() {
 
               try {
                 if (!hasBrowserSupabaseConfig) {
-                  throw new Error('Area do cliente ainda nao esta conectada ao Supabase.');
+                  signInDemoClient(form.email, form.password);
+                  window.location.assign('/cliente/dashboard');
+                  return;
                 }
 
                 const supabase = getBrowserSupabase();
-                const { error } = await supabase.auth.signInWithPassword({
+                const { data, error } = await supabase.auth.signInWithPassword({
                   email: form.email,
                   password: form.password,
                 });
@@ -56,7 +60,11 @@ export function ClienteLoginPage() {
                   throw new Error(error.message);
                 }
 
-                router.push('/cliente/dashboard');
+                if (!data.session) {
+                  throw new Error('Nao foi possivel iniciar a sessao do cliente.');
+                }
+
+                window.location.assign('/cliente/dashboard');
               } catch (loginError) {
                 setMessage(loginError instanceof Error ? loginError.message : 'Nao foi possivel entrar.');
               } finally {
@@ -76,14 +84,30 @@ export function ClienteLoginPage() {
             </label>
             <label className="space-y-2">
               <span className="text-sm font-medium text-[var(--text)]">Senha</span>
-              <input
-                type="password"
-                className="field"
-                value={form.password}
-                onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-                placeholder="Sua senha"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="field pr-12"
+                  value={form.password}
+                  onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+                  placeholder="Sua senha"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-[var(--muted)] transition hover:text-[var(--text)]"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
             </label>
+
+            {!hasBrowserSupabaseConfig ? (
+              <div className="border border-[var(--line)] bg-[var(--panel)] px-4 py-3 text-sm muted">
+                Use o e-mail do cliente cadastrado e a senha demo `{demoClientPassword}` enquanto o Supabase oficial nao estiver preenchido.
+              </div>
+            ) : null}
 
             <button
               type="submit"
