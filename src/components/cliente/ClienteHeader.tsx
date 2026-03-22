@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { LogOut } from 'lucide-react';
+import { BrandLogo } from '@/components/brand-logo';
 
 export function ClienteHeader({
   clientName,
@@ -14,9 +15,7 @@ export function ClienteHeader({
     <header className="border-b border-[var(--line)] bg-[var(--panel)]">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center bg-[var(--text)] text-[var(--bg)]">
-            VC
-          </div>
+          <BrandLogo iconOnly iconSize="sm" />
           <div>
             <p className="text-sm font-semibold text-[var(--text)]">VexCoding</p>
             <p className="text-xs muted">Portal do cliente</p>
