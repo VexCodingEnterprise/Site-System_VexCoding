@@ -2,6 +2,13 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  clearDemoClientSession,
+  getDemoClientSnapshot,
+  requestDemoClientChecklistReopen,
+  saveDemoClientChecklist,
+  sendDemoClientMessage,
+} from '@/lib/client-portal-demo';
 import { getBrowserSupabase, hasBrowserSupabaseConfig } from '@/lib/supabase';
 import type {
   ChecklistResponseValue,
@@ -57,6 +64,19 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
     setError('');
 
     try {
+      if (!hasBrowserSupabaseConfig) {
+        const demoSnapshot = getDemoClientSnapshot();
+
+        if (!demoSnapshot) {
+          setSnapshot(null);
+          router.replace('/cliente');
+          return;
+        }
+
+        setSnapshot(demoSnapshot);
+        return;
+      }
+
       const token = await getAccessToken();
 
       if (!token) {
@@ -92,18 +112,20 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
 
     void loadSnapshot();
 
-    try {
-      const supabase = resolveSupabase();
+    if (hasBrowserSupabaseConfig) {
+      try {
+        const supabase = resolveSupabase();
 
-      subscription = supabase.auth.onAuthStateChange((_event, session) => {
-        if (!session) {
-          setSnapshot(null);
-          router.replace('/cliente');
-        }
-      }).data.subscription;
-    } catch (supabaseError) {
-      setError(supabaseError instanceof Error ? supabaseError.message : 'Nao foi possivel iniciar o portal do cliente.');
-      setLoading(false);
+        subscription = supabase.auth.onAuthStateChange((_event, session) => {
+          if (!session) {
+            setSnapshot(null);
+            router.replace('/cliente');
+          }
+        }).data.subscription;
+      } catch (supabaseError) {
+        setError(supabaseError instanceof Error ? supabaseError.message : 'Nao foi possivel iniciar o portal do cliente.');
+        setLoading(false);
+      }
     }
 
     return () => {
@@ -112,7 +134,7 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
   }, [loadSnapshot, resolveSupabase, router]);
 
   useEffect(() => {
-    if (!snapshot?.project.id) {
+    if (!snapshot?.project.id || !hasBrowserSupabaseConfig) {
       return;
     }
 
@@ -165,6 +187,13 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
   }, [resolveSupabase, snapshot?.project.id]);
 
   const logout = useCallback(async () => {
+    if (!hasBrowserSupabaseConfig) {
+      clearDemoClientSession();
+      setSnapshot(null);
+      router.replace('/cliente');
+      return;
+    }
+
     const supabase = resolveSupabase();
     await supabase.auth.signOut();
     setSnapshot(null);
@@ -179,6 +208,17 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
     setSending(true);
     setError('');
     try {
+      if (!hasBrowserSupabaseConfig) {
+        const nextSnapshot = sendDemoClientMessage(text);
+
+        if (!nextSnapshot) {
+          throw new Error('Sessao expirada. Entre novamente para continuar.');
+        }
+
+        setSnapshot(nextSnapshot);
+        return;
+      }
+
       const supabase = resolveSupabase();
       const { error: insertError } = await supabase.from('mensagens_projeto').insert({
         projeto_id: snapshot.project.id,
@@ -209,6 +249,17 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
     setError('');
 
     try {
+      if (!hasBrowserSupabaseConfig) {
+        const nextSnapshot = saveDemoClientChecklist(responses, checklistPatch);
+
+        if (!nextSnapshot) {
+          throw new Error('Sessao expirada. Entre novamente para continuar.');
+        }
+
+        setSnapshot(nextSnapshot);
+        return;
+      }
+
       const token = await getAccessToken();
       if (!token) {
         throw new Error('Sessao expirada. Entre novamente para continuar.');
@@ -243,6 +294,10 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
   }, [getAccessToken, snapshot]);
 
   const uploadChecklistFile = useCallback(async (projectId: string, file: File) => {
+    if (!hasBrowserSupabaseConfig) {
+      throw new Error('Upload de arquivo no portal do cliente depende do Supabase Storage.');
+    }
+
     const token = await getAccessToken();
 
     if (!token) {
@@ -284,6 +339,17 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
     setError('');
 
     try {
+      if (!hasBrowserSupabaseConfig) {
+        const nextSnapshot = requestDemoClientChecklistReopen(checklistId);
+
+        if (!nextSnapshot) {
+          throw new Error('Sessao expirada. Entre novamente para continuar.');
+        }
+
+        setSnapshot(nextSnapshot);
+        return;
+      }
+
       const token = await getAccessToken();
       if (!token) {
         throw new Error('Sessao expirada. Entre novamente para continuar.');
