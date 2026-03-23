@@ -3,8 +3,8 @@ import 'server-only';
 import { Buffer } from 'node:buffer';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { cookies } from 'next/headers';
-import { env } from '@/lib/config';
 import { fixedPartners } from '@/data/demo';
+import { serverEnv } from '@/lib/server/config';
 import type { DashboardSession, Partner, PartnerId } from '@/types/dashboard';
 
 const SESSION_COOKIE = 'vexcoding_session';
@@ -14,19 +14,19 @@ const toBuffer = (value: string) => Buffer.from(value, 'utf8');
 const safeCompare = (left: string, right: string) =>
   left.length === right.length && timingSafeEqual(toBuffer(left), toBuffer(right));
 
-export const hashPassword = (username: string, password: string, secret = env.sessionSecret) =>
+export const hashPassword = (username: string, password: string, secret = serverEnv.sessionSecret) =>
   createHmac('sha256', secret)
     .update(`${username.toLowerCase()}:${password}`)
     .digest('hex');
 
 export const getPasswordHashCandidates = (username: string, password: string) =>
-  [env.sessionSecret, ...LEGACY_PASSWORD_SECRETS]
+  [serverEnv.sessionSecret, ...LEGACY_PASSWORD_SECRETS]
     .filter(Boolean)
     .filter((secret, index, secrets) => secrets.indexOf(secret) === index)
     .map((secret) => hashPassword(username, password, secret));
 
 const signValue = (value: string) =>
-  createHmac('sha256', env.sessionSecret).update(value).digest('hex');
+  createHmac('sha256', serverEnv.sessionSecret).update(value).digest('hex');
 
 export const getDefaultPartner = (username: string): Partner | undefined =>
   fixedPartners.find((partner) => partner.username === username.toLowerCase());
