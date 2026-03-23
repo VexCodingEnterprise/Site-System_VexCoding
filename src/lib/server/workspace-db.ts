@@ -50,6 +50,31 @@ const TABLES = {
   settings: 'workspace_settings',
 };
 
+const defaultOfficialPartners = [
+  {
+    username: 'rafael',
+    display_name: 'Rafael Nogueira',
+    role: 'Socio de produto',
+    email: 'rafael@vexcoding.com',
+    avatar_color: '#0A0A0A',
+    password_hash: hashPassword('rafael', '123456'),
+    notifications_email: true,
+    notifications_browser: true,
+    theme_preference: 'dark',
+  },
+  {
+    username: 'lourenzo',
+    display_name: 'Lourenzo Martins',
+    role: 'Socio de operacoes',
+    email: 'lourenzo@vexcoding.com',
+    avatar_color: '#444444',
+    password_hash: hashPassword('lourenzo', '123456'),
+    notifications_email: true,
+    notifications_browser: true,
+    theme_preference: 'light',
+  },
+] as const;
+
 const orderByDateDesc = <T extends { date?: string; createdAt?: string; created_at?: string; updatedAt?: string }>(items: T[]) =>
   [...items].sort((a, b) => {
     const first = a.date || a.createdAt || a.created_at || a.updatedAt || '';
@@ -438,6 +463,29 @@ export const getOfficialWorkspace = async (): Promise<WorkspaceData> => {
 
 export const verifyOfficialPartner = async (username: string, password: string) => {
   const supabase = assertOfficialMode();
+  const { data: existingPartners, error: existingPartnersError } = await supabase
+    .from(TABLES.partners)
+    .select('username')
+    .in(
+      'username',
+      defaultOfficialPartners.map((partner) => partner.username),
+    );
+
+  if (existingPartnersError) {
+    throw new Error(existingPartnersError.message);
+  }
+
+  const existingUsernames = new Set((existingPartners || []).map((partner) => String(partner.username)));
+  const missingPartners = defaultOfficialPartners.filter((partner) => !existingUsernames.has(partner.username));
+
+  if (missingPartners.length) {
+    const { error: seedError } = await supabase.from(TABLES.partners).insert(missingPartners);
+
+    if (seedError) {
+      throw new Error(seedError.message);
+    }
+  }
+
   const { data, error } = await supabase
     .from(TABLES.partners)
     .select('*')
