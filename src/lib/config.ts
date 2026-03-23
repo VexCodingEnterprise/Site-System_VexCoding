@@ -42,6 +42,12 @@ export const getMissingOfficialSupabaseEnv = () =>
     !env.supabaseServiceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
   ].filter(Boolean) as string[];
 
+export const getMissingPublicSupabaseEnv = () =>
+  [
+    !env.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+    !env.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
+  ].filter(Boolean) as string[];
+
 export const getInvalidOfficialSupabaseEnv = () =>
   [
     env.supabaseUrl && !isValidSupabaseUrl(env.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
@@ -49,20 +55,23 @@ export const getInvalidOfficialSupabaseEnv = () =>
     env.supabaseServiceRoleKey && isPlaceholderValue(env.supabaseServiceRoleKey) ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
   ].filter(Boolean) as string[];
 
+export const getInvalidPublicSupabaseEnv = () =>
+  [
+    env.supabaseUrl && !isValidSupabaseUrl(env.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+    env.supabaseAnonKey && isPlaceholderValue(env.supabaseAnonKey) ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
+  ].filter(Boolean) as string[];
+
 export const hasOfficialSupabase =
   isValidSupabaseUrl(env.supabaseUrl) &&
   !isPlaceholderValue(env.supabaseAnonKey) &&
   !isPlaceholderValue(env.supabaseServiceRoleKey);
 
-export const officialSupabaseConfigError = () => {
-  const missing = getMissingOfficialSupabaseEnv();
-  const invalid = getInvalidOfficialSupabaseEnv();
-
+const buildConfigErrorMessage = (missing: string[], invalid: string[]) => {
   if (missing.length === 0 && invalid.length === 0) {
     return '';
   }
 
-  const parts = [];
+  const parts: string[] = [];
 
   if (missing.length) {
     parts.push(`preencha: ${missing.join(', ')}`);
@@ -74,3 +83,9 @@ export const officialSupabaseConfigError = () => {
 
   return `Supabase oficial nao configurado. ${parts.join('. ')}.`;
 };
+
+export const officialSupabaseConfigError = () =>
+  buildConfigErrorMessage(getMissingOfficialSupabaseEnv(), getInvalidOfficialSupabaseEnv());
+
+export const publicSupabaseConfigError = () =>
+  buildConfigErrorMessage(getMissingPublicSupabaseEnv(), getInvalidPublicSupabaseEnv());
