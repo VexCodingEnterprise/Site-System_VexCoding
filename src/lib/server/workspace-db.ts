@@ -26,7 +26,7 @@ import type {
 } from '@/types/dashboard';
 import { env } from '@/lib/config';
 import { createId, sanitizeFileName } from '@/lib/utils';
-import { hashPassword } from '@/lib/server/auth';
+import { getPasswordHashCandidates, hashPassword } from '@/lib/server/auth';
 import { assertOfficialMode } from '@/lib/server/supabase-admin';
 
 const TABLES = {
@@ -501,8 +501,24 @@ export const verifyOfficialPartner = async (username: string, password: string) 
   }
 
   const partner = mapPartner(data);
-  if (partner.passwordHash !== hashPassword(username, password)) {
+  const currentHash = hashPassword(username, password);
+  const passwordMatches = getPasswordHashCandidates(username, password).includes(partner.passwordHash);
+
+  if (!passwordMatches) {
     return null;
+  }
+
+  if (partner.passwordHash !== currentHash) {
+    const { error: updatePasswordError } = await supabase
+      .from(TABLES.partners)
+      .update({ password_hash: currentHash })
+      .eq('username', username.toLowerCase());
+
+    if (updatePasswordError) {
+      throw new Error(updatePasswordError.message);
+    }
+
+    partner.passwordHash = currentHash;
   }
 
   return partner;
