@@ -8,15 +8,22 @@ import { fixedPartners } from '@/data/demo';
 import type { DashboardSession, Partner, PartnerId } from '@/types/dashboard';
 
 const SESSION_COOKIE = 'vexcoding_session';
+const LEGACY_PASSWORD_SECRETS = ['vexcoding-dev-session-secret', 'gere-um-segredo-forte-aqui'];
 
 const toBuffer = (value: string) => Buffer.from(value, 'utf8');
 const safeCompare = (left: string, right: string) =>
   left.length === right.length && timingSafeEqual(toBuffer(left), toBuffer(right));
 
-export const hashPassword = (username: string, password: string) =>
-  createHmac('sha256', env.sessionSecret)
+export const hashPassword = (username: string, password: string, secret = env.sessionSecret) =>
+  createHmac('sha256', secret)
     .update(`${username.toLowerCase()}:${password}`)
     .digest('hex');
+
+export const getPasswordHashCandidates = (username: string, password: string) =>
+  [env.sessionSecret, ...LEGACY_PASSWORD_SECRETS]
+    .filter(Boolean)
+    .filter((secret, index, secrets) => secrets.indexOf(secret) === index)
+    .map((secret) => hashPassword(username, password, secret));
 
 const signValue = (value: string) =>
   createHmac('sha256', env.sessionSecret).update(value).digest('hex');
@@ -25,9 +32,9 @@ export const getDefaultPartner = (username: string): Partner | undefined =>
   fixedPartners.find((partner) => partner.username === username.toLowerCase());
 
 export const verifyPassword = (partner: Partner, password: string) => {
-  const expected = hashPassword(partner.username, password);
-
-  return safeCompare(partner.passwordHash, expected);
+  return getPasswordHashCandidates(partner.username, password).some((candidate) =>
+    safeCompare(partner.passwordHash, candidate),
+  );
 };
 
 export const createSessionCookie = (partner: Partner) => {
