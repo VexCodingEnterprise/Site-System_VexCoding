@@ -6,6 +6,25 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { BrandLogo } from '@/components/brand-logo';
 
+const readResponseMessage = async (response: Response) => {
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
+    try {
+      const payload = (await response.json()) as { message?: string };
+      return payload.message || '';
+    } catch {
+      return '';
+    }
+  }
+
+  try {
+    return (await response.text()).trim();
+  } catch {
+    return '';
+  }
+};
+
 export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }) {
   const router = useRouter();
   const [form, setForm] = useState({ username: '', password: '' });
@@ -47,10 +66,10 @@ export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(form),
                 });
-                const payload = (await response.json()) as { message?: string };
+                const responseMessage = await readResponseMessage(response);
 
                 if (!response.ok) {
-                  throw new Error(payload.message || 'Nao foi possivel entrar.');
+                  throw new Error(responseMessage || 'Nao foi possivel entrar.');
                 }
 
                 window.location.assign(redirectTo || '/dashboard');
