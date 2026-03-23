@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { hasOfficialSupabase } from '@/lib/config';
 import { getDefaultPartner, setSessionCookie, verifyPassword } from '@/lib/server/auth';
+import { hasOfficialSupabase } from '@/lib/server/config';
 import { verifyOfficialPartner } from '@/lib/server/workspace-db';
 
 export async function POST(request: Request) {
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
     let partner = null;
 
-    if (hasOfficialSupabase) {
+    if (hasOfficialSupabase()) {
       try {
         partner = await verifyOfficialPartner(username, password);
       } catch {
