@@ -7,6 +7,34 @@ export const env = {
   projectDocumentsBucket: process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'project-documents',
 };
 
+const isPlaceholderValue = (value: string) => {
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return true;
+  }
+
+  return (
+    normalized.includes('SEU-PROJETO') ||
+    normalized.includes('SUA_SERVICE_ROLE_KEY') ||
+    normalized.includes('SEU_ANON_KEY') ||
+    normalized.includes('gere-um-segredo')
+  );
+};
+
+const isValidSupabaseUrl = (value: string) => {
+  if (isPlaceholderValue(value)) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    return /^https?:$/.test(url.protocol) && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+};
+
 export const getMissingOfficialSupabaseEnv = () =>
   [
     !env.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
@@ -14,15 +42,35 @@ export const getMissingOfficialSupabaseEnv = () =>
     !env.supabaseServiceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
   ].filter(Boolean) as string[];
 
+export const getInvalidOfficialSupabaseEnv = () =>
+  [
+    env.supabaseUrl && !isValidSupabaseUrl(env.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+    env.supabaseAnonKey && isPlaceholderValue(env.supabaseAnonKey) ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
+    env.supabaseServiceRoleKey && isPlaceholderValue(env.supabaseServiceRoleKey) ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
+  ].filter(Boolean) as string[];
+
 export const hasOfficialSupabase =
-  Boolean(env.supabaseUrl) && Boolean(env.supabaseAnonKey) && Boolean(env.supabaseServiceRoleKey);
+  isValidSupabaseUrl(env.supabaseUrl) &&
+  !isPlaceholderValue(env.supabaseAnonKey) &&
+  !isPlaceholderValue(env.supabaseServiceRoleKey);
 
 export const officialSupabaseConfigError = () => {
   const missing = getMissingOfficialSupabaseEnv();
+  const invalid = getInvalidOfficialSupabaseEnv();
 
-  if (missing.length === 0) {
+  if (missing.length === 0 && invalid.length === 0) {
     return '';
   }
 
-  return `Supabase oficial nao configurado. Preencha: ${missing.join(', ')}.`;
+  const parts = [];
+
+  if (missing.length) {
+    parts.push(`preencha: ${missing.join(', ')}`);
+  }
+
+  if (invalid.length) {
+    parts.push(`corrija valores invalidos em: ${invalid.join(', ')}`);
+  }
+
+  return `Supabase oficial nao configurado. ${parts.join('. ')}.`;
 };
