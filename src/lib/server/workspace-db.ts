@@ -24,7 +24,7 @@ import type {
   WorkspaceData,
   WorkspaceSettings,
 } from '@/types/dashboard';
-import { env } from '@/lib/config';
+import { publicEnv } from '@/lib/config';
 import { createId, sanitizeFileName } from '@/lib/utils';
 import { getPasswordHashCandidates, hashPassword } from '@/lib/server/auth';
 import { assertOfficialMode } from '@/lib/server/supabase-admin';
@@ -277,7 +277,7 @@ const createSignedDocumentUrl = async (filePath: string | null) => {
 
   const supabase = assertOfficialMode();
   const { data, error } = await supabase.storage
-    .from(env.projectDocumentsBucket)
+    .from(publicEnv.projectDocumentsBucket)
     .createSignedUrl(filePath, 60 * 60 * 12);
 
   if (error) {
@@ -294,7 +294,7 @@ const createSignedClientDocumentUrl = async (filePath: string | null) => {
 
   const supabase = assertOfficialMode();
   const { data, error } = await supabase.storage
-    .from(env.projectDocumentsBucket)
+    .from(publicEnv.projectDocumentsBucket)
     .createSignedUrl(filePath, 60 * 60 * 12);
 
   if (error) {
@@ -578,7 +578,7 @@ export const uploadOfficialDocumentFile = async (projectId: string, file: File) 
   const filePath = `${projectId}/${timestamp}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const { error } = await supabase.storage.from(env.projectDocumentsBucket).upload(filePath, buffer, {
+  const { error } = await supabase.storage.from(publicEnv.projectDocumentsBucket).upload(filePath, buffer, {
     contentType: file.type || 'application/octet-stream',
     upsert: false,
   });
@@ -605,7 +605,7 @@ export const uploadOfficialClientDocumentFile = async (projectId: string, file: 
   const filePath = `client-portal/${projectId}/${timestamp}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const { error } = await supabase.storage.from(env.projectDocumentsBucket).upload(filePath, buffer, {
+  const { error } = await supabase.storage.from(publicEnv.projectDocumentsBucket).upload(filePath, buffer, {
     contentType: file.type || 'application/octet-stream',
     upsert: false,
   });
@@ -627,7 +627,7 @@ export const uploadOfficialChecklistFile = async (projectId: string, file: File)
   const filePath = `client-checklists/${projectId}/${timestamp}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const { error } = await supabase.storage.from(env.projectDocumentsBucket).upload(filePath, buffer, {
+  const { error } = await supabase.storage.from(publicEnv.projectDocumentsBucket).upload(filePath, buffer, {
     contentType: file.type || 'application/octet-stream',
     upsert: false,
   });
