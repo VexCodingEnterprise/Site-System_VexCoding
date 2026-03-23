@@ -16,7 +16,7 @@ import {
   saveDemoWorkspace,
   setStoredMode,
 } from '@/lib/demo-store';
-import { officialSupabaseConfigError } from '@/lib/config';
+import { publicSupabaseConfigError } from '@/lib/config';
 import { createId } from '@/lib/utils';
 import type {
   AppMode,
@@ -261,7 +261,7 @@ export function DashboardProvider({
     }
 
     if (nextMode === 'official') {
-      const configError = officialSupabaseConfigError();
+      const configError = publicSupabaseConfigError();
       if (configError) {
         setError(configError);
         return;
