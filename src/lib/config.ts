@@ -1,13 +1,10 @@
-export const env = {
+export const publicEnv = {
   supabaseUrl: (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim(),
   supabaseAnonKey: (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim(),
-  supabaseServiceRoleKey: (process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim(),
-  resendApiKey: (process.env.RESEND_API_KEY || '').trim(),
-  sessionSecret: (process.env.SESSION_SECRET || 'vexcoding-dev-session-secret').trim(),
   projectDocumentsBucket: (process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'project-documents').trim(),
 };
 
-const isPlaceholderValue = (value: string) => {
+export const isPlaceholderValue = (value: string) => {
   const normalized = value.trim();
 
   if (!normalized) {
@@ -22,7 +19,7 @@ const isPlaceholderValue = (value: string) => {
   );
 };
 
-const isValidSupabaseUrl = (value: string) => {
+export const isValidSupabaseUrl = (value: string) => {
   if (isPlaceholderValue(value)) {
     return false;
   }
@@ -37,34 +34,27 @@ const isValidSupabaseUrl = (value: string) => {
 
 export const getMissingOfficialSupabaseEnv = () =>
   [
-    !env.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    !env.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
-    !env.supabaseServiceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
+    !publicEnv.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+    !publicEnv.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
   ].filter(Boolean) as string[];
 
 export const getMissingPublicSupabaseEnv = () =>
   [
-    !env.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    !env.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
+    !publicEnv.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+    !publicEnv.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
   ].filter(Boolean) as string[];
 
 export const getInvalidOfficialSupabaseEnv = () =>
   [
-    env.supabaseUrl && !isValidSupabaseUrl(env.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    env.supabaseAnonKey && isPlaceholderValue(env.supabaseAnonKey) ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
-    env.supabaseServiceRoleKey && isPlaceholderValue(env.supabaseServiceRoleKey) ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
+    publicEnv.supabaseUrl && !isValidSupabaseUrl(publicEnv.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+    publicEnv.supabaseAnonKey && isPlaceholderValue(publicEnv.supabaseAnonKey) ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
   ].filter(Boolean) as string[];
 
 export const getInvalidPublicSupabaseEnv = () =>
   [
-    env.supabaseUrl && !isValidSupabaseUrl(env.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    env.supabaseAnonKey && isPlaceholderValue(env.supabaseAnonKey) ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
+    publicEnv.supabaseUrl && !isValidSupabaseUrl(publicEnv.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
+    publicEnv.supabaseAnonKey && isPlaceholderValue(publicEnv.supabaseAnonKey) ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
   ].filter(Boolean) as string[];
-
-export const hasOfficialSupabase =
-  isValidSupabaseUrl(env.supabaseUrl) &&
-  !isPlaceholderValue(env.supabaseAnonKey) &&
-  !isPlaceholderValue(env.supabaseServiceRoleKey);
 
 const buildConfigErrorMessage = (missing: string[], invalid: string[]) => {
   if (missing.length === 0 && invalid.length === 0) {
