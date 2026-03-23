@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { env, hasOfficialSupabase, officialSupabaseConfigError } from '@/lib/config';
+import { hasOfficialSupabase, officialSupabaseConfigError, serverEnv } from '@/lib/server/config';
 
 export const supabaseAdmin = hasOfficialSupabase
-  ? createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
+  ? createClient(serverEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
