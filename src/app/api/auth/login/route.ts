@@ -18,7 +18,19 @@ export async function POST(request: Request) {
     if (hasOfficialSupabase()) {
       try {
         partner = await verifyOfficialPartner(username, password);
-      } catch {
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          (
+            error.message.includes('Supabase oficial nao configurado') ||
+            error.message.includes('supabase/schema.sql') ||
+            error.message.includes('schema cache') ||
+            error.message.includes('Bucket')
+          )
+        ) {
+          throw error;
+        }
+
         partner = null;
       }
     }
