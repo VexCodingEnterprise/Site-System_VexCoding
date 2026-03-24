@@ -16,7 +16,7 @@ export const getMissingOfficialSupabaseEnv = () => {
 
   return [
     !serverEnv.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    !serverEnv.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
+    !serverEnv.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : null,
     !serverEnv.supabaseServiceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
   ].filter(Boolean) as string[];
 };
@@ -26,7 +26,9 @@ export const getInvalidOfficialSupabaseEnv = () => {
 
   return [
     serverEnv.supabaseUrl && !isValidSupabaseUrl(serverEnv.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    serverEnv.supabaseAnonKey && isPlaceholderValue(serverEnv.supabaseAnonKey) ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY' : null,
+    serverEnv.supabaseAnonKey && isPlaceholderValue(serverEnv.supabaseAnonKey)
+      ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+      : null,
     serverEnv.supabaseServiceRoleKey && isPlaceholderValue(serverEnv.supabaseServiceRoleKey)
       ? 'SUPABASE_SERVICE_ROLE_KEY'
       : null,
