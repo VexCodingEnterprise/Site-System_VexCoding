@@ -186,6 +186,7 @@ const mapClient = (row: Record<string, unknown>): ClientAccount => ({
   name: String(row.nome),
   email: String(row.email),
   createdAt: String(row.criado_em),
+  portalPassword: null,
   accessStatus: (row.user_id ? 'Acesso criado' : 'Aguardando criacao') as ClientAccount['accessStatus'],
 });
 
@@ -748,8 +749,8 @@ type WorkspaceActionPayload =
   | { type: 'finance-create'; entry: Omit<FinanceEntry, 'id'> }
   | { type: 'document-create'; document: Omit<ProjectDocument, 'id'> }
   | { type: 'project-testimonial'; projectId: string; testimonial: string; useAsCase: boolean }
-  | { type: 'client-access-create'; projectId: string; name: string; email: string }
-  | { type: 'client-access-regenerate-password'; clientId: string }
+  | { type: 'client-access-create'; projectId: string; name: string; email: string; password: string }
+  | { type: 'client-access-regenerate-password'; clientId: string; password?: string }
   | { type: 'client-stage-create'; stage: Omit<ClientPortalStage, 'id' | 'completedAt' | 'createdAt'> }
   | { type: 'client-stage-update'; stageId: string; patch: Partial<ClientPortalStage> }
   | { type: 'client-stage-delete'; stageId: string }
@@ -949,32 +950,57 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
   }
 
   if (payload.type === 'client-access-create') {
-    const temporaryPassword = generateTemporaryPassword();
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-      email: payload.email,
-      password: temporaryPassword,
-      email_confirm: true,
-      user_metadata: {
-        full_name: payload.name,
-        role: 'cliente',
-      },
-    });
-
-    if (authError || !authUser.user) {
-      throw new Error(authError?.message || 'Nao foi possivel criar o acesso do cliente.');
-    }
-
-    const { data: existingClient } = await supabase
+    const chosenPassword = payload.password.trim() || generateTemporaryPassword();
+    const { data: existingClient, error: existingClientError } = await supabase
       .from(TABLES.clients)
-      .select('id')
+      .select('id, user_id')
       .eq('projeto_id', payload.projectId)
       .maybeSingle();
+
+    if (existingClientError) {
+      throw new Error(existingClientError.message);
+    }
+
+    let authUserId: string;
+
+    if (existingClient?.user_id) {
+      const { error: authUpdateError } = await supabase.auth.admin.updateUserById(String(existingClient.user_id), {
+        email: payload.email,
+        password: chosenPassword,
+        user_metadata: {
+          full_name: payload.name,
+          role: 'cliente',
+        },
+      });
+
+      if (authUpdateError) {
+        throw new Error(authUpdateError.message);
+      }
+
+      authUserId = String(existingClient.user_id);
+    } else {
+      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+        email: payload.email,
+        password: chosenPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: payload.name,
+          role: 'cliente',
+        },
+      });
+
+      if (authError || !authUser.user) {
+        throw new Error(authError?.message || 'Nao foi possivel criar o acesso do cliente.');
+      }
+
+      authUserId = authUser.user.id;
+    }
 
     if (existingClient?.id) {
       const { error } = await supabase
         .from(TABLES.clients)
         .update({
-          user_id: authUser.user.id,
+          user_id: authUserId,
           nome: payload.name,
           email: payload.email,
         })
@@ -982,13 +1008,13 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
 
       if (error) throw new Error(error.message);
 
-      return { temporaryPassword, clientId: existingClient.id };
+      return { temporaryPassword: chosenPassword, clientId: existingClient.id };
     }
 
     const clientId = createId('client');
     const { error } = await supabase.from(TABLES.clients).insert({
       id: clientId,
-      user_id: authUser.user.id,
+      user_id: authUserId,
       nome: payload.name,
       email: payload.email,
       projeto_id: payload.projectId,
@@ -997,7 +1023,7 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
 
     if (error) throw new Error(error.message);
 
-    return { temporaryPassword, clientId };
+    return { temporaryPassword: chosenPassword, clientId };
   }
 
   if (payload.type === 'client-access-regenerate-password') {
@@ -1010,7 +1036,7 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
     if (clientError) throw new Error(clientError.message);
     if (!clientRow?.user_id) throw new Error('Esse cliente ainda nao possui acesso criado.');
 
-    const temporaryPassword = generateTemporaryPassword();
+    const temporaryPassword = payload.password?.trim() || generateTemporaryPassword();
     const { error } = await supabase.auth.admin.updateUserById(String(clientRow.user_id), {
       password: temporaryPassword,
     });
