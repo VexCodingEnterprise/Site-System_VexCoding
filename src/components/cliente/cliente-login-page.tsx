@@ -10,7 +10,7 @@ import { getBrowserSupabase, hasBrowserSupabaseConfig } from '@/lib/supabase';
 
 export function ClienteLoginPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ identifier: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -45,14 +45,25 @@ export function ClienteLoginPage() {
 
               try {
                 if (!hasBrowserSupabaseConfig) {
-                  signInDemoClient(form.email, form.password);
+                  signInDemoClient(form.identifier, form.password);
                   window.location.assign('/cliente/dashboard');
                   return;
                 }
 
+                const resolveResponse = await fetch('/api/client-auth/resolve', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ identifier: form.identifier }),
+                });
+                const resolvePayload = (await resolveResponse.json()) as { email?: string; message?: string };
+
+                if (!resolveResponse.ok || !resolvePayload.email) {
+                  throw new Error(resolvePayload.message || 'Nao foi possivel localizar o acesso do cliente.');
+                }
+
                 const supabase = getBrowserSupabase();
                 const { data, error } = await supabase.auth.signInWithPassword({
-                  email: form.email,
+                  email: resolvePayload.email,
                   password: form.password,
                 });
 
@@ -73,13 +84,12 @@ export function ClienteLoginPage() {
             }}
           >
             <label className="space-y-2">
-              <span className="text-sm font-medium text-[var(--text)]">E-mail</span>
+              <span className="text-sm font-medium text-[var(--text)]">E-mail ou nome</span>
               <input
-                type="email"
                 className="field"
-                value={form.email}
-                onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
-                placeholder="cliente@empresa.com"
+                value={form.identifier}
+                onChange={(event) => setForm((current) => ({ ...current, identifier: event.target.value }))}
+                placeholder="cliente@empresa.com ou nome do cliente"
               />
             </label>
             <label className="space-y-2">
@@ -105,7 +115,7 @@ export function ClienteLoginPage() {
 
             {!hasBrowserSupabaseConfig ? (
               <div className="border border-[var(--line)] bg-[var(--panel)] px-4 py-3 text-sm muted">
-                Use o e-mail do cliente cadastrado e a senha demo `{demoClientPassword}` enquanto o Supabase oficial nao estiver preenchido.
+                Use o e-mail ou o nome do cliente cadastrado e a senha definida. Se nao houver uma senha personalizada no demo, use `{demoClientPassword}`.
               </div>
             ) : null}
 
