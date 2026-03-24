@@ -13,6 +13,7 @@ export function CriarAcessoCliente({ projectId }: { projectId: string }) {
   const [form, setForm] = useState({
     name: client?.name || '',
     email: client?.email || '',
+    password: '',
   });
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
 
@@ -30,7 +31,7 @@ export function CriarAcessoCliente({ projectId }: { projectId: string }) {
           <StatusPill value={client?.accessStatus || 'Aguardando criacao'} />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <input
             className="field"
             placeholder="Nome completo"
@@ -43,15 +44,23 @@ export function CriarAcessoCliente({ projectId }: { projectId: string }) {
             value={form.email}
             onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
           />
+          <input
+            type="password"
+            className="field"
+            placeholder={client ? 'Nova senha opcional' : 'Defina a senha'}
+            value={form.password}
+            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+          />
         </div>
 
         <div className="flex flex-col gap-3 md:flex-row">
           <button
             type="button"
-            disabled={!form.name || !form.email}
+            disabled={!form.name || !form.email || !form.password}
             onClick={async () => {
-              const payload = await createClientAccess(projectId, form.name, form.email);
+              const payload = await createClientAccess(projectId, form.name, form.email, form.password);
               setGeneratedPassword(payload.temporaryPassword);
+              setForm((current) => ({ ...current, password: '' }));
             }}
             className="h-11 border border-[var(--text)] bg-[var(--text)] px-4 text-sm font-medium text-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -62,8 +71,9 @@ export function CriarAcessoCliente({ projectId }: { projectId: string }) {
             <button
               type="button"
               onClick={async () => {
-                const payload = await regenerateClientPassword(client.id);
+                const payload = await regenerateClientPassword(client.id, form.password);
                 setGeneratedPassword(payload.temporaryPassword);
+                setForm((current) => ({ ...current, password: '' }));
               }}
               className="h-11 border border-[var(--line)] bg-[var(--panel)] px-4 text-sm font-medium"
             >
@@ -77,7 +87,7 @@ export function CriarAcessoCliente({ projectId }: { projectId: string }) {
             <p className="font-semibold">Senha temporaria gerada</p>
             <p className="mt-2 font-mono">{generatedPassword}</p>
             <p className="mt-2 text-xs">
-              Copie agora e envie ao cliente manualmente por WhatsApp.
+              O cliente pode entrar com o e-mail ou com o nome cadastrado, junto dessa senha.
             </p>
           </div>
         ) : null}
