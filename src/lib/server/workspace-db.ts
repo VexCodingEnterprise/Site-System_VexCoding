@@ -96,6 +96,38 @@ type StageRow = {
   descricao: string | null;
 };
 
+type SupabaseLikeError = {
+  message?: string | null;
+  details?: string | null;
+};
+
+const getOfficialDatabaseErrorMessage = (error: SupabaseLikeError | null | undefined, fallback: string) => {
+  if (!error) {
+    return fallback;
+  }
+
+  const rawMessage = String(error.message || error.details || fallback);
+
+  if (
+    rawMessage.includes('schema cache') ||
+    rawMessage.includes('does not exist') ||
+    rawMessage.includes('relation') ||
+    rawMessage.includes("Could not find the table 'public.partners'")
+  ) {
+    return 'As tabelas do Supabase oficial ainda nao existem nesse projeto. Rode o arquivo supabase/schema.sql no SQL Editor do projeto conectado e tente novamente.';
+  }
+
+  if (rawMessage.includes('Bucket not found')) {
+    return `O bucket ${publicEnv.projectDocumentsBucket} ainda nao existe no Supabase Storage.`;
+  }
+
+  return rawMessage;
+};
+
+const throwOfficialDatabaseError = (error: SupabaseLikeError | null | undefined, fallback: string): never => {
+  throw new Error(getOfficialDatabaseErrorMessage(error, fallback));
+};
+
 const orderByDateDesc = <T extends { date?: string; createdAt?: string; created_at?: string; updatedAt?: string }>(items: T[]) =>
   [...items].sort((a, b) => {
     const first = a.date || a.createdAt || a.created_at || a.updatedAt || '';
@@ -438,26 +470,26 @@ export const getOfficialWorkspace = async (): Promise<WorkspaceData> => {
     stageTemplatesRes.error ||
     settingsRes.error
   ) {
-    throw new Error(
-      partnersRes.error?.message ||
-        leadsRes.error?.message ||
-        projectsRes.error?.message ||
-        historyRes.error?.message ||
-        branchesRes.error?.message ||
-        tasksRes.error?.message ||
-        financeRes.error?.message ||
-        documentsRes.error?.message ||
-        clientsRes.error?.message ||
-        clientStagesRes.error?.message ||
-        clientUpdatesRes.error?.message ||
-        clientMessagesRes.error?.message ||
-        clientDocumentsRes.error?.message ||
-        checklistTemplatesRes.error?.message ||
-        projectChecklistsRes.error?.message ||
-        checklistResponsesRes.error?.message ||
-        stageTemplatesRes.error?.message ||
-        settingsRes.error?.message ||
-        'Nao foi possivel carregar o workspace oficial.',
+    throwOfficialDatabaseError(
+      partnersRes.error ||
+        leadsRes.error ||
+        projectsRes.error ||
+        historyRes.error ||
+        branchesRes.error ||
+        tasksRes.error ||
+        financeRes.error ||
+        documentsRes.error ||
+        clientsRes.error ||
+        clientStagesRes.error ||
+        clientUpdatesRes.error ||
+        clientMessagesRes.error ||
+        clientDocumentsRes.error ||
+        checklistTemplatesRes.error ||
+        projectChecklistsRes.error ||
+        checklistResponsesRes.error ||
+        stageTemplatesRes.error ||
+        settingsRes.error,
+      'Nao foi possivel carregar o workspace oficial.',
     );
   }
 
@@ -494,7 +526,7 @@ export const verifyOfficialPartner = async (username: string, password: string) 
     );
 
   if (existingPartnersError) {
-    throw new Error(existingPartnersError.message);
+    throwOfficialDatabaseError(existingPartnersError, 'Nao foi possivel verificar os socios oficiais.');
   }
 
   const existingUsernames = new Set((existingPartners || []).map((partner) => String(partner.username)));
@@ -504,7 +536,7 @@ export const verifyOfficialPartner = async (username: string, password: string) 
     const { error: seedError } = await supabase.from(TABLES.partners).insert(missingPartners);
 
     if (seedError) {
-      throw new Error(seedError.message);
+      throwOfficialDatabaseError(seedError, 'Nao foi possivel preparar os socios padrao no Supabase.');
     }
   }
 
@@ -515,7 +547,7 @@ export const verifyOfficialPartner = async (username: string, password: string) 
     .maybeSingle();
 
   if (error) {
-    throw new Error(error.message);
+    throwOfficialDatabaseError(error, 'Nao foi possivel consultar os socios oficiais.');
   }
 
   if (!data) {
@@ -537,7 +569,7 @@ export const verifyOfficialPartner = async (username: string, password: string) 
       .eq('username', username.toLowerCase());
 
     if (updatePasswordError) {
-      throw new Error(updatePasswordError.message);
+      throwOfficialDatabaseError(updatePasswordError, 'Nao foi possivel atualizar a senha do socio oficial.');
     }
 
     partner.passwordHash = currentHash;
