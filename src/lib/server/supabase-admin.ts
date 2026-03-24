@@ -1,18 +1,20 @@
-import { createClient } from '@supabase/supabase-js';
+import 'server-only';
+
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { getServerEnv, hasOfficialSupabase, officialSupabaseConfigError } from '@/lib/server/config';
 
-let supabaseAdmin:
-  | ReturnType<typeof createClient>
-  | null = null;
+type UntypedSupabaseClient = SupabaseClient<any, 'public', any>;
 
-export const assertOfficialMode = () => {
+let supabaseAdmin: UntypedSupabaseClient | null = null;
+
+export const assertOfficialMode = (): UntypedSupabaseClient => {
   if (!hasOfficialSupabase()) {
     throw new Error(officialSupabaseConfigError() || 'Supabase oficial nao configurado.');
   }
 
   if (!supabaseAdmin) {
     const serverEnv = getServerEnv();
-    supabaseAdmin = createClient(serverEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
+    supabaseAdmin = createClient<any>(serverEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
