@@ -78,8 +78,8 @@ interface DashboardContextValue {
   createFinanceEntry: (entry: FinanceDraft) => Promise<void>;
   createDocument: (document: DocumentDraft) => Promise<void>;
   uploadDocumentFile: (projectId: string, file: File) => Promise<UploadedDocument>;
-  createClientAccess: (projectId: string, name: string, email: string) => Promise<{ temporaryPassword: string | null }>;
-  regenerateClientPassword: (clientId: string) => Promise<{ temporaryPassword: string | null }>;
+  createClientAccess: (projectId: string, name: string, email: string, password: string) => Promise<{ temporaryPassword: string | null }>;
+  regenerateClientPassword: (clientId: string, nextPassword?: string) => Promise<{ temporaryPassword: string | null }>;
   createClientStage: (stage: ClientStageDraft) => Promise<void>;
   updateClientStage: (stageId: string, patch: Partial<ClientPortalStage>) => Promise<void>;
   deleteClientStage: (stageId: string) => Promise<void>;
@@ -489,11 +489,11 @@ export function DashboardProvider({
     return api.uploadOfficialDocument(projectId, file);
   };
 
-  const createClientAccess = async (projectId: string, name: string, email: string) => {
+  const createClientAccess = async (projectId: string, name: string, email: string, password: string) => {
     if (mode === 'official') {
       const payload = await api.postOfficial({
         scope: 'workspace',
-        action: { type: 'client-access-create', projectId, name, email },
+        action: { type: 'client-access-create', projectId, name, email, password },
       });
       await loadWorkspace('official');
       return { temporaryPassword: payload.result?.temporaryPassword || null };
@@ -501,7 +501,7 @@ export function DashboardProvider({
 
     let temporaryPassword: string | null = null;
     await runAction(async () => {
-      temporaryPassword = Math.random().toString(36).slice(-10) + 'A1!';
+      temporaryPassword = password.trim();
       persistDemoWorkspace((current) => {
         const existing = current.clients.find((client) => client.projectId === projectId);
         if (existing) {
@@ -509,7 +509,7 @@ export function DashboardProvider({
             ...current,
             clients: current.clients.map((client) =>
               client.projectId === projectId
-                ? { ...client, name, email, accessStatus: 'Acesso criado' }
+                ? { ...client, name, email, portalPassword: temporaryPassword, accessStatus: 'Acesso criado' }
                 : client,
             ),
           };
@@ -524,6 +524,7 @@ export function DashboardProvider({
               projectId,
               name,
               email,
+              portalPassword: temporaryPassword,
               createdAt: new Date().toISOString(),
               accessStatus: 'Acesso criado',
             },
@@ -536,18 +537,24 @@ export function DashboardProvider({
     return { temporaryPassword };
   };
 
-  const regenerateClientPassword = async (clientId: string) => {
+  const regenerateClientPassword = async (clientId: string, nextPassword?: string) => {
     if (mode === 'official') {
       const payload = await api.postOfficial({
         scope: 'workspace',
-        action: { type: 'client-access-regenerate-password', clientId },
+        action: { type: 'client-access-regenerate-password', clientId, password: nextPassword },
       });
       return { temporaryPassword: payload.result?.temporaryPassword || null };
     }
 
     let temporaryPassword: string | null = null;
     await runAction(async () => {
-      temporaryPassword = Math.random().toString(36).slice(-10) + 'A1!';
+      temporaryPassword = nextPassword?.trim() || Math.random().toString(36).slice(-10) + 'A1!';
+      persistDemoWorkspace((current) => ({
+        ...current,
+        clients: current.clients.map((client) =>
+          client.id === clientId ? { ...client, portalPassword: temporaryPassword } : client,
+        ),
+      }));
     }, 'Senha regenerada para o cliente.');
 
     return { temporaryPassword };
