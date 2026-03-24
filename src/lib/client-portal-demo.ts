@@ -18,6 +18,7 @@ const DEMO_CLIENT_SESSION_KEY = 'vexcoding-demo-client-session-v1';
 interface DemoClientSession {
   clientId: string;
   email: string;
+  identifier: string;
   projectId: string;
   createdAt: string;
 }
@@ -25,6 +26,7 @@ interface DemoClientSession {
 export const demoClientPassword = '123456';
 
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
+const normalizeIdentifier = (value: string) => value.trim().toLowerCase();
 
 const sortByNewest = <T extends { createdAt?: string; updatedAt?: string }>(items: T[]) =>
   [...items].sort((left, right) => {
@@ -129,23 +131,25 @@ export const clearDemoClientSession = () => {
   }
 };
 
-export const signInDemoClient = (email: string, password: string) => {
-  const normalizedEmail = normalizeEmail(email);
-
-  if (!normalizedEmail || password.trim() !== demoClientPassword) {
-    throw new Error('Credenciais invalidas.');
-  }
-
+export const signInDemoClient = (identifier: string, password: string) => {
+  const normalizedIdentifier = normalizeIdentifier(identifier);
   const workspace = getDemoWorkspace();
-  const client = workspace.clients.find((item) => normalizeEmail(item.email) === normalizedEmail);
+  const client = workspace.clients.find(
+    (item) =>
+      normalizeEmail(item.email) === normalizedIdentifier ||
+      normalizeIdentifier(item.name) === normalizedIdentifier,
+  );
 
-  if (!client) {
+  const expectedPassword = client?.portalPassword || demoClientPassword;
+
+  if (!normalizedIdentifier || !client || password.trim() !== expectedPassword) {
     throw new Error('Credenciais invalidas.');
   }
 
   const session: DemoClientSession = {
     clientId: client.id,
-    email: normalizedEmail,
+    email: normalizeEmail(client.email),
+    identifier: normalizedIdentifier,
     projectId: client.projectId,
     createdAt: new Date().toISOString(),
   };
