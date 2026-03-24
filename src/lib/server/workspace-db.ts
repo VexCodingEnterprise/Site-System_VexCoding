@@ -75,6 +75,25 @@ const defaultOfficialPartners = [
   },
 ] as const;
 
+type ClientRow = {
+  id: string;
+  user_id: string | null;
+  projeto_id: string;
+  nome: string;
+  email: string;
+};
+
+type ExistingClientRow = {
+  id: string;
+  user_id: string | null;
+};
+
+type StageRow = {
+  id: string;
+  projeto_id: string;
+  descricao: string | null;
+};
+
 const orderByDateDesc = <T extends { date?: string; createdAt?: string; created_at?: string; updatedAt?: string }>(items: T[]) =>
   [...items].sort((a, b) => {
     const first = a.date || a.createdAt || a.created_at || a.updatedAt || '';
@@ -659,7 +678,7 @@ export const getClientPortalSnapshotByUserId = async (userId: string): Promise<C
     return null;
   }
 
-  const client = mapClient(clientRow);
+  const client = mapClient(clientRow as Record<string, unknown>);
 
   const [
     projectRes,
@@ -704,10 +723,10 @@ export const getClientPortalSnapshotByUserId = async (userId: string): Promise<C
     return null;
   }
 
-  const project = mapProject(projectRes.data);
+  const project = mapProject(projectRes.data as Record<string, unknown>);
   const partners = (partnersRes.data || []).map((row) => mapPartner(row));
   const responsiblePartner = partners.find((partner) => project.partnerIds.includes(partner.id)) || null;
-  const checklist = checklistRes.data ? mapProjectChecklist(checklistRes.data) : null;
+  const checklist = checklistRes.data ? mapProjectChecklist(checklistRes.data as Record<string, unknown>) : null;
   let checklistResponsesRows: Record<string, unknown>[] = [];
 
   if (checklist) {
@@ -721,7 +740,7 @@ export const getClientPortalSnapshotByUserId = async (userId: string): Promise<C
       throw new Error(responsesRes.error.message);
     }
 
-    checklistResponsesRows = responsesRes.data || [];
+    checklistResponsesRows = (responsesRes.data || []) as Record<string, unknown>[];
   }
 
   return {
@@ -963,8 +982,10 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
 
     let authUserId: string;
 
-    if (existingClient?.user_id) {
-      const { error: authUpdateError } = await supabase.auth.admin.updateUserById(String(existingClient.user_id), {
+    const existingClientRow = (existingClient || null) as ExistingClientRow | null;
+
+    if (existingClientRow?.user_id) {
+      const { error: authUpdateError } = await supabase.auth.admin.updateUserById(String(existingClientRow.user_id), {
         email: payload.email,
         password: chosenPassword,
         user_metadata: {
@@ -977,7 +998,7 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
         throw new Error(authUpdateError.message);
       }
 
-      authUserId = String(existingClient.user_id);
+      authUserId = String(existingClientRow.user_id);
     } else {
       const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
         email: payload.email,
@@ -996,7 +1017,7 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
       authUserId = authUser.user.id;
     }
 
-    if (existingClient?.id) {
+    if (existingClientRow?.id) {
       const { error } = await supabase
         .from(TABLES.clients)
         .update({
@@ -1004,11 +1025,11 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
           nome: payload.name,
           email: payload.email,
         })
-        .eq('id', existingClient.id);
+        .eq('id', existingClientRow.id);
 
       if (error) throw new Error(error.message);
 
-      return { temporaryPassword: chosenPassword, clientId: existingClient.id };
+      return { temporaryPassword: chosenPassword, clientId: existingClientRow.id };
     }
 
     const clientId = createId('client');
@@ -1034,10 +1055,11 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
       .maybeSingle();
 
     if (clientError) throw new Error(clientError.message);
-    if (!clientRow?.user_id) throw new Error('Esse cliente ainda nao possui acesso criado.');
+    const clientAccessRow = (clientRow || null) as ClientRow | null;
+    if (!clientAccessRow?.user_id) throw new Error('Esse cliente ainda nao possui acesso criado.');
 
     const temporaryPassword = payload.password?.trim() || generateTemporaryPassword();
-    const { error } = await supabase.auth.admin.updateUserById(String(clientRow.user_id), {
+    const { error } = await supabase.auth.admin.updateUserById(String(clientAccessRow.user_id), {
       password: temporaryPassword,
     });
 
@@ -1100,7 +1122,8 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
       .maybeSingle();
 
     if (stageError) throw new Error(stageError.message);
-    if (!stageRow) throw new Error('Etapa nao encontrada.');
+    const stage = (stageRow || null) as StageRow | null;
+    if (!stage) throw new Error('Etapa nao encontrada.');
 
     const completedAt = new Date().toISOString();
     const { error: updateError } = await supabase
@@ -1112,9 +1135,9 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
 
     const { error: feedError } = await supabase.from(TABLES.clientUpdates).insert({
       id: createId('update'),
-      projeto_id: String(stageRow.projeto_id),
+      projeto_id: String(stage.projeto_id),
       titulo: payload.updateTitle,
-      descricao: payload.updateDescription || String(stageRow.descricao || ''),
+      descricao: payload.updateDescription || String(stage.descricao || ''),
       icone: 'check',
       criado_em: completedAt,
     });
