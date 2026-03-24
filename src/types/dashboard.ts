@@ -212,6 +212,7 @@ export interface ClientAccount {
   projectId: string;
   name: string;
   email: string;
+  portalPassword?: string | null;
   createdAt: string;
   accessStatus: 'Aguardando criacao' | 'Acesso criado';
 }
