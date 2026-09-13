@@ -1,109 +1,153 @@
 import 'server-only';
 
-import { Buffer } from 'node:buffer';
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { fixedPartners } from '@/data/demo';
-import { getServerEnv } from '@/lib/server/config';
 import type { DashboardSession, Partner, PartnerId } from '@/types/dashboard';
+import { publicEnv } from '@/lib/config';
+import { assertOfficialMode } from '@/lib/server/supabase-admin';
+import { hasOfficialSupabase } from '@/lib/server/config';
 
-const SESSION_COOKIE = 'vexcoding_session';
-const LEGACY_PASSWORD_SECRETS = ['vexcoding-dev-session-secret', 'gere-um-segredo-forte-aqui'];
+const createAuthClient = async () => {
+  const cookieStore = await cookies();
 
-const toBuffer = (value: string) => Buffer.from(value, 'utf8');
-const safeCompare = (left: string, right: string) =>
-  left.length === right.length && timingSafeEqual(toBuffer(left), toBuffer(right));
-
-export const hashPassword = (username: string, password: string, secret = getServerEnv().sessionSecret) =>
-  createHmac('sha256', secret)
-    .update(`${username.toLowerCase()}:${password}`)
-    .digest('hex');
-
-export const getPasswordHashCandidates = (username: string, password: string) =>
-  [getServerEnv().sessionSecret, ...LEGACY_PASSWORD_SECRETS]
-    .filter(Boolean)
-    .filter((secret, index, secrets) => secrets.indexOf(secret) === index)
-    .map((secret) => hashPassword(username, password, secret));
-
-const signValue = (value: string) =>
-  createHmac('sha256', getServerEnv().sessionSecret).update(value).digest('hex');
-
-export const getDefaultPartner = (username: string): Partner | undefined =>
-  fixedPartners.find((partner) => partner.username === username.toLowerCase());
-
-export const verifyPassword = (partner: Partner, password: string) => {
-  return getPasswordHashCandidates(partner.username, password).some((candidate) =>
-    safeCompare(partner.passwordHash, candidate),
-  );
-};
-
-export const createSessionCookie = (partner: Partner) => {
-  const payload = JSON.stringify({
-    partnerId: partner.id,
-    username: partner.username,
-    displayName: partner.displayName,
-    role: partner.role,
-    avatarColor: partner.avatarColor,
-    createdAt: Date.now(),
-  });
-
-  const base = Buffer.from(payload).toString('base64url');
-  const signature = signValue(base);
-
-  return `${base}.${signature}`;
-};
-
-export const parseSessionCookie = (value?: string | null): DashboardSession | null => {
-  if (!value) {
-    return null;
-  }
-
-  const [base, signature] = value.split('.');
-  if (!base || !signature) {
-    return null;
-  }
-
-  const expected = signValue(base);
-
-  if (!safeCompare(signature, expected)) {
-    return null;
-  }
-
-  try {
-    const payload = JSON.parse(Buffer.from(base, 'base64url').toString('utf8')) as DashboardSession & {
-      createdAt?: number;
-    };
-
-    return {
-      partnerId: payload.partnerId as PartnerId,
-      username: payload.username,
-      displayName: payload.displayName,
-      role: payload.role,
-      avatarColor: payload.avatarColor,
-    };
-  } catch {
-    return null;
-  }
-};
-
-export const getSession = () => parseSessionCookie(cookies().get(SESSION_COOKIE)?.value);
-
-export const setSessionCookie = (partner: Partner) => {
-  cookies().set(SESSION_COOKIE, createSessionCookie(partner), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 14,
+  return createServerClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        } catch {
+          // Server Components são somente leitura; o middleware persiste cookies renovados.
+        }
+      },
+    },
   });
 };
 
-export const clearSessionCookie = () => {
-  cookies().set(SESSION_COOKIE, '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 0,
+type PartnerRow = {
+  username: string;
+  auth_user_id: string | null;
+  display_name: string;
+  role: string;
+  email: string;
+  avatar_color: string;
+  notifications_email: boolean;
+  notifications_browser: boolean;
+  theme_preference: Partner['themePreference'];
+  criado_em: string;
+};
+
+const partnerSelect =
+  'username, auth_user_id, display_name, role, email, avatar_color, notifications_email, notifications_browser, theme_preference, criado_em';
+
+const mapPartnerSession = (row: PartnerRow): DashboardSession => ({
+  partnerId: row.username as PartnerId,
+  username: row.username,
+  displayName: row.display_name,
+  role: row.role,
+  avatarColor: row.avatar_color || '#0A0A0A',
+});
+
+export const getSession = async (): Promise<DashboardSession | null> => {
+  if (!hasOfficialSupabase()) {
+    return null;
+  }
+
+  const authClient = await createAuthClient();
+  const { data, error } = await authClient.auth.getUser();
+
+  if (error || !data.user) {
+    return null;
+  }
+
+  const { data: partner, error: partnerError } = await assertOfficialMode()
+    .from('partners')
+    .select(partnerSelect)
+    .eq('auth_user_id', data.user.id)
+    .maybeSingle();
+
+  if (partnerError || !partner) {
+    return null;
+  }
+
+  return mapPartnerSession(partner as PartnerRow);
+};
+
+export const signInPartner = async (username: string, password: string) => {
+  if (!hasOfficialSupabase()) {
+    return null;
+  }
+
+  const normalizedUsername = username.trim().toLowerCase();
+  const admin = assertOfficialMode();
+  const { data: partner, error: partnerError } = await admin
+    .from('partners')
+    .select(partnerSelect)
+    .eq('username', normalizedUsername)
+    .maybeSingle();
+
+  if (partnerError || !partner) {
+    return null;
+  }
+
+  const authClient = await createAuthClient();
+  const { data, error } = await authClient.auth.signInWithPassword({
+    email: String((partner as PartnerRow).email),
+    password,
   });
+
+  if (error || !data.user) {
+    return null;
+  }
+
+  const partnerRow = partner as PartnerRow;
+
+  if (partnerRow.auth_user_id && partnerRow.auth_user_id !== data.user.id) {
+    await authClient.auth.signOut();
+    return null;
+  }
+
+  if (!partnerRow.auth_user_id) {
+    const { error: linkError } = await admin
+      .from('partners')
+      .update({ auth_user_id: data.user.id })
+      .eq('username', normalizedUsername)
+      .is('auth_user_id', null);
+
+    if (linkError) {
+      await authClient.auth.signOut();
+      return null;
+    }
+  }
+
+  return mapPartnerSession({ ...partnerRow, auth_user_id: data.user.id });
+};
+
+export const signOut = async () => {
+  if (!hasOfficialSupabase()) {
+    return;
+  }
+
+  await (await createAuthClient()).auth.signOut();
+};
+
+export const updateCurrentPartnerPassword = async (nextPassword: string) => {
+  const password = nextPassword.trim();
+  if (password.length < 12 || password.length > 128) {
+    throw new Error('A senha deve ter entre 12 e 128 caracteres.');
+  }
+
+  const authClient = await createAuthClient();
+  const { data, error } = await authClient.auth.getUser();
+
+  if (error || !data.user) {
+    throw new Error('Sessão expirada. Entre novamente.');
+  }
+
+  const { error: updateError } = await authClient.auth.updateUser({ password });
+  if (updateError) {
+    throw new Error('Não foi possível atualizar a senha.');
+  }
 };

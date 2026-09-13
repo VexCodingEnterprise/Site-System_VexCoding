@@ -29,7 +29,7 @@ const fieldTypeOptions: Array<{ value: ChecklistFieldType; label: string }> = [
   { value: 'multi_choice', label: 'Multipla escolha' },
   { value: 'link', label: 'Link' },
   { value: 'color', label: 'Cor' },
-  { value: 'boolean', label: 'Sim / Nao' },
+  { value: 'boolean', label: 'Sim / Não' },
 ];
 
 const reorderStructure = (structure: ChecklistStructure): ChecklistStructure => {
@@ -161,7 +161,7 @@ export function ChecklistBuilder({ projectId }: { projectId: string }) {
 
   const handleNotify = async () => {
     const link = typeof window !== 'undefined' ? `${window.location.origin}/cliente` : '/cliente';
-    const message = `Ola ${project.clientName}! Seu checklist esta disponivel no portal. Acesse ${link} e preencha para darmos inicio ao projeto.`;
+    const message = `Olá ${project.clientName}! Seu checklist está disponível no portal. Acesse ${link} e preencha para darmos início ao projeto.`;
 
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(message);
@@ -621,7 +621,7 @@ export function ChecklistBuilder({ projectId }: { projectId: string }) {
         />
         <div className="panel">
           <div className="border-b border-[var(--line)] px-4 py-4">
-            <h3 className="text-base font-semibold text-[var(--text)]">Resumo rapido</h3>
+            <h3 className="text-base font-semibold text-[var(--text)]">Resumo rápido</h3>
             <p className="mt-1 text-sm muted">Estrutura atual pronta para o cliente preencher no portal.</p>
           </div>
           <div className="space-y-3 p-4">
@@ -635,7 +635,7 @@ export function ChecklistBuilder({ projectId }: { projectId: string }) {
               );
             })}
             {orderedSections.length === 0 ? (
-              <div className="panel-alt px-4 py-4 text-sm muted">O template atual ainda nao possui secoes.</div>
+              <div className="panel-alt px-4 py-4 text-sm muted">O template atual ainda não possui seções.</div>
             ) : null}
           </div>
         </div>

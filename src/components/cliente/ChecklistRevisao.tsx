@@ -5,16 +5,16 @@ import type { ChecklistResponseValue, ProjectChecklist } from '@/types/dashboard
 
 const renderValue = (value: ChecklistResponseValue) => {
   if (typeof value === 'boolean') {
-    return value ? 'Sim' : 'Nao';
+    return value ? 'Sim' : 'Não';
   }
 
   if (typeof value === 'string') {
-    return value || 'Nao preenchido';
+    return value || 'Não preenchido';
   }
 
   if (Array.isArray(value)) {
     if (value.length === 0) {
-      return 'Nao preenchido';
+      return 'Não preenchido';
     }
 
     return value
@@ -26,7 +26,7 @@ const renderValue = (value: ChecklistResponseValue) => {
     return value.name;
   }
 
-  return 'Nao preenchido';
+  return 'Não preenchido';
 };
 
 export function ChecklistRevisao({

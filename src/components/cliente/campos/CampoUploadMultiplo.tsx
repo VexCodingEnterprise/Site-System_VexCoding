@@ -40,7 +40,7 @@ export function CampoUploadMultiplo({
                 onChange(next);
               })
               .catch((uploadError) =>
-                setError(uploadError instanceof Error ? uploadError.message : 'Nao foi possivel enviar as imagens.'),
+                setError(uploadError instanceof Error ? uploadError.message : 'Não foi possível enviar as imagens.'),
               )
               .finally(() => {
                 setUploading(false);

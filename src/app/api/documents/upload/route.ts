@@ -3,9 +3,9 @@ import { getSession } from '@/lib/server/auth';
 import { uploadOfficialDocumentFile } from '@/lib/server/workspace-db';
 
 export async function POST(request: Request) {
-  const session = getSession();
+  const session = await getSession();
   if (!session) {
-    return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+    return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
   }
 
   try {
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const file = formData.get('file');
 
     if (!projectId) {
-      return NextResponse.json({ message: 'Projeto invalido.' }, { status: 400 });
+      return NextResponse.json({ message: 'Projeto inválido.' }, { status: 400 });
     }
 
     if (!(file instanceof File)) {
@@ -29,9 +29,10 @@ export async function POST(request: Request) {
       fileUrl: upload.fileUrl,
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Nao foi possivel enviar o documento.' },
-      { status: 500 },
-    );
+    console.error('document_upload_failed', error instanceof Error ? error.message : 'unknown_error');
+    const message = error instanceof Error && /Arquivo inválido|Projeto não encontrado/.test(error.message)
+      ? error.message
+      : 'Não foi possível enviar o documento.';
+    return NextResponse.json({ message }, { status: 400 });
   }
 }

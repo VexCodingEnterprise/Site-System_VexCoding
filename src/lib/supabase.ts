@@ -4,15 +4,16 @@ import { createClient } from '@supabase/supabase-js';
 import { publicEnv } from '@/lib/config';
 
 let browserClient: ReturnType<typeof createClient> | null = null;
-export const hasBrowserSupabaseConfig = Boolean(publicEnv.supabaseUrl) && Boolean(publicEnv.supabaseAnonKey);
+export const hasBrowserSupabaseConfig =
+  Boolean(publicEnv.supabaseUrl) && Boolean(publicEnv.supabasePublishableKey);
 
 export function getBrowserSupabase() {
   if (!hasBrowserSupabaseConfig) {
-    throw new Error('Supabase publico nao configurado.');
+    throw new Error('Supabase público não configurado.');
   }
 
   if (!browserClient) {
-    browserClient = createClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey);
+    browserClient = createClient(publicEnv.supabaseUrl, publicEnv.supabasePublishableKey);
   }
 
   return browserClient;

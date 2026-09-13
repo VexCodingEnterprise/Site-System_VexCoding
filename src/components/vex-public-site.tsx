@@ -7,7 +7,6 @@ import { useGlobalStyles } from '@/app/shared.jsx';
 
 export function VexPublicSite() {
   const router = useRouter();
-  const [selectedProject, setSelectedProject] = useState<any>(null);
   const [policyModal, setPolicyModal] = useState<any>(null);
 
   useGlobalStyles();
@@ -21,11 +20,8 @@ export function VexPublicSite() {
     <SiteShell
       onOpenLogin={() => router.push('/login')}
       onOpenClientArea={() => router.push('/cliente')}
-      selectedProject={selectedProject}
-      setSelectedProject={setSelectedProject}
       policyModal={policyModal}
       setPolicyModal={setPolicyModal}
-      navigateTo={(path: string) => router.push(path)}
     />
   );
 }

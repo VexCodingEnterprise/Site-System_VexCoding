@@ -94,10 +94,10 @@ export function FinanceView() {
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
         {[
-          { label: 'Total recebido no mes', value: formatCurrency(summary.receivedCurrent) },
+          { label: 'Total recebido no mês', value: formatCurrency(summary.receivedCurrent) },
           { label: 'Total a receber', value: formatCurrency(summary.pending) },
-          { label: 'Divisao por socio', value: formatCurrency(summary.split) },
-          { label: 'Comparacao com mes anterior', value: `${summary.variation.toFixed(1)}%` },
+          { label: 'Divisão por sócio', value: formatCurrency(summary.split) },
+          { label: 'Comparação com mês anterior', value: `${summary.variation.toFixed(1)}%` },
         ].map((card) => (
           <Panel key={card.label} className="px-4 py-4">
             <p className="text-sm muted">{card.label}</p>
@@ -108,7 +108,7 @@ export function FinanceView() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Panel>
-          <SectionTitle title="Receita mensal" description="Ultimos 12 meses" />
+          <SectionTitle title="Receita mensal" description="Últimos 12 meses" />
           <div className="h-[280px] p-4">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthlyRevenue}>
@@ -136,7 +136,7 @@ export function FinanceView() {
           </div>
         </Panel>
         <Panel>
-          <SectionTitle title="Status de recebimento" description="Visao de caixa" />
+          <SectionTitle title="Status de recebimento" description="Visão de caixa" />
           <div className="h-[280px] p-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -153,7 +153,7 @@ export function FinanceView() {
       </div>
 
       <Panel>
-        <SectionTitle title="Historico de transacoes" description="Filtre por mes e status." />
+        <SectionTitle title="Histórico de transações" description="Filtre por mês e status." />
         <div className="grid grid-cols-1 gap-4 border-b border-[var(--line)] p-4 md:grid-cols-2">
           <select className="field" value={monthFilter} onChange={(event) => setMonthFilter(event.target.value)}>
             {months.map((month) => (

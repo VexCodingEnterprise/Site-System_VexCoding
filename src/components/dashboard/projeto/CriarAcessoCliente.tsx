@@ -19,7 +19,7 @@ export function CriarAcessoCliente({ projectId }: { projectId: string }) {
 
   return (
     <Panel>
-      <SectionTitle title="Criar acesso do cliente" description="A conta do cliente e criada pelos socios e a senha aparece uma unica vez." />
+      <SectionTitle title="Criar acesso do cliente" description="A conta do cliente é criada pelos sócios e a senha aparece uma única vez." />
       <div className="space-y-4 p-4">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -84,10 +84,10 @@ export function CriarAcessoCliente({ projectId }: { projectId: string }) {
 
         {generatedPassword ? (
           <div className="border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-            <p className="font-semibold">Senha temporaria gerada</p>
+            <p className="font-semibold">Senha temporária gerada</p>
             <p className="mt-2 font-mono">{generatedPassword}</p>
             <p className="mt-2 text-xs">
-              O cliente pode entrar com o e-mail ou com o nome cadastrado, junto dessa senha.
+              O cliente pode entrar com o e-mail cadastrado e essa senha.
             </p>
           </div>
         ) : null}

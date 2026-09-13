@@ -24,7 +24,7 @@ export const uploadFileToRoute = async ({
   };
 
   if (!response.ok || !payload.fileUrl) {
-    throw new Error(payload.message || 'Nao foi possivel enviar o arquivo.');
+    throw new Error(payload.message || 'Não foi possível enviar o arquivo.');
   }
 
   return {

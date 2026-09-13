@@ -7,12 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-.next
+node_modules/
+.next/
+.open-next/
 dist
+out/
 dist-ssr
 tsconfig.tsbuildinfo
 *.local
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
@@ -25,3 +28,10 @@ tsconfig.tsbuildinfo
 *.sln
 *.sw?
 .env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/
+cloudflare-env.d.ts

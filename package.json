@@ -1,39 +1,51 @@
 {
-    "name": "VexCoding",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "engines": {
-        "node": "20.x"
-    },
-    "scripts": {
-        "dev": "next dev",
-        "build": "next build",
-        "start": "next start",
-        "lint": "next lint"
-    },
-    "dependencies": {
-        "@supabase/supabase-js": "^2.99.3",
-        "@types/node": "^25.5.0",
-        "clsx": "^2.1.1",
-        "framer-motion": "^12.38.0",
-        "lucide-react": "^0.577.0",
-        "next": "^14.2.35",
-        "next-themes": "^0.4.6",
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1",
-        "recharts": "^3.8.0",
-        "typescript": "^5.9.3"
-    },
-    "devDependencies": {
-        "@types/react": "^18.3.28",
-        "@types/react-dom": "^18.3.7",
-        "autoprefixer": "^10.4.27",
-        "browserslist": "^4.28.1",
-        "caniuse-lite": "1.0.30001774",
-        "eslint": "^8.57.0",
-        "eslint-config-next": "^14.2.35",
-        "postcss": "^8.5.8",
-        "tailwindcss": "^3.4.17"
-    }
+  "name": "VexCoding",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0 <25"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "vitest run --config vitest.config.ts",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "preview:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy:cloudflare": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "1.20.6",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.99.3",
+    "@types/node": "^22.0.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.577.0",
+    "next": "16.3.5",
+    "next-themes": "^0.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-is": "^19.1.0",
+    "recharts": "^3.8.0",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.16",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.27",
+    "baseline-browser-mapping": "^2.11.22",
+    "browserslist": "^4.28.1",
+    "caniuse-lite": "1.0.30001774",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.17",
+    "vitest": "^5.0.0",
+    "wrangler": "^4.131.1"
+  }
 }

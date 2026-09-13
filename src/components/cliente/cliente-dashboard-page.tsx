@@ -35,7 +35,7 @@ export function ClienteDashboardPage() {
               <p className="mt-2 text-sm font-medium">{snapshot.project.type}</p>
             </div>
             <div className="panel-alt px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.16em] muted">Socio responsavel</p>
+              <p className="text-xs uppercase tracking-[0.16em] muted">Sócio responsável</p>
               <p className="mt-2 text-sm font-medium">{snapshot.responsiblePartner?.displayName || 'Equipe VexCoding'}</p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export function ClienteDashboardPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="font-semibold text-[var(--text)]">Acessos rapidos</p>
-                <p className="mt-1 text-sm muted">Continue acompanhando o projeto por area.</p>
+                <p className="mt-1 text-sm muted">Continue acompanhando o projeto pela área do cliente.</p>
               </div>
             </div>
             <div className="mt-4 space-y-3">

@@ -7,11 +7,18 @@ import { cloneDeep } from '@/lib/utils';
 const STORAGE_KEY = 'vexcoding-demo-workspace-v2';
 const MODE_KEY = 'vexcoding-app-mode';
 
+export const demoModeEnabled =
+  process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE === 'true';
+
 export const canUseStorage = () => typeof window !== 'undefined' && !!window.localStorage;
 
 export const getStoredMode = (): 'demo' | 'official' => {
+  if (!demoModeEnabled) {
+    return 'official';
+  }
+
   if (!canUseStorage()) {
-    return 'demo';
+    return 'official';
   }
 
   const stored = window.localStorage.getItem(MODE_KEY);
@@ -20,7 +27,7 @@ export const getStoredMode = (): 'demo' | 'official' => {
 
 export const setStoredMode = (mode: 'demo' | 'official') => {
   if (canUseStorage()) {
-    window.localStorage.setItem(MODE_KEY, mode);
+    window.localStorage.setItem(MODE_KEY, mode === 'demo' && demoModeEnabled ? 'demo' : 'official');
   }
 };
 

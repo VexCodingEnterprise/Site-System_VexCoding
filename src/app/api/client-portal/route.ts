@@ -27,14 +27,14 @@ async function getAuthorizedClient(request: Request): Promise<AuthorizedClientRe
   const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : null;
 
   if (!token) {
-    return { errorResponse: NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 }) } as const;
+    return { errorResponse: NextResponse.json({ message: 'Não autenticado.' }, { status: 401 }) } as const;
   }
 
   const supabase = assertOfficialMode();
   const { data, error } = await supabase.auth.getUser(token);
 
   if (error || !data.user) {
-    return { errorResponse: NextResponse.json({ message: 'Sessao do cliente invalida.' }, { status: 401 }) } as const;
+    return { errorResponse: NextResponse.json({ message: 'Sessão do cliente inválida.' }, { status: 401 }) } as const;
   }
 
   const { data: clientRow, error: clientError } = await supabase
@@ -46,7 +46,7 @@ async function getAuthorizedClient(request: Request): Promise<AuthorizedClientRe
   if (clientError || !clientRow) {
     return {
       errorResponse: NextResponse.json(
-        { message: clientError?.message || 'Nenhum portal de cliente vinculado a este usuario.' },
+        { message: 'Nenhum portal de cliente vinculado a este usuário.' },
         { status: 404 },
       ),
     } as const;
@@ -68,13 +68,14 @@ export async function GET(request: Request) {
     const snapshot = await getClientPortalSnapshotByUserId(auth.userId);
 
     if (!snapshot) {
-      return NextResponse.json({ message: 'Nenhum portal de cliente vinculado a este usuario.' }, { status: 404 });
+      return NextResponse.json({ message: 'Nenhum portal de cliente vinculado a este usuário.' }, { status: 404 });
     }
 
     return NextResponse.json({ snapshot });
   } catch (error) {
+    console.error('client_portal_load_failed', error instanceof Error ? error.message : 'unknown_error');
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Nao foi possivel carregar o portal do cliente.' },
+      { message: 'Não foi possível carregar o portal do cliente.' },
       { status: 500 },
     );
   }
@@ -94,11 +95,21 @@ export async function POST(request: Request) {
           responses: Array<{ itemId: string; value: ChecklistResponseValue }>;
           checklistPatch?: Partial<Pick<ProjectChecklist, 'status' | 'releasedAt' | 'submittedAt' | 'reopenedAt' | 'lastSavedAt'>>;
         }
-      | { action: 'checklist-request-reopen'; checklistId: string };
+      | { action: 'checklist-request-reopen'; checklistId: string }
+      | { action: 'message-create'; text: string };
 
     const projectId = String(auth.clientRow.projeto_id);
 
     if (body.action === 'checklist-save') {
+      if (
+        !body.checklistId ||
+        !Array.isArray(body.responses) ||
+        body.responses.length > 100 ||
+        body.responses.some((response) => !response?.itemId || response.itemId.length > 160)
+      ) {
+        return NextResponse.json({ message: 'Dados do checklist inválidos.' }, { status: 400 });
+      }
+
       const { data: checklistRow, error: checklistError } = await auth.supabase
         .from('checklists_projeto')
         .select('id, projeto_id')
@@ -108,7 +119,7 @@ export async function POST(request: Request) {
 
       if (checklistError || !checklistRow) {
         return NextResponse.json(
-          { message: checklistError?.message || 'Checklist nao encontrado para este cliente.' },
+          { message: 'Checklist não encontrado para este cliente.' },
           { status: 404 },
         );
       }
@@ -128,7 +139,7 @@ export async function POST(request: Request) {
           .upsert(rows, { onConflict: 'checklist_id,item_id' });
 
         if (responsesError) {
-          return NextResponse.json({ message: responsesError.message }, { status: 500 });
+          return NextResponse.json({ message: 'Não foi possível salvar as respostas.' }, { status: 500 });
         }
       }
 
@@ -148,7 +159,7 @@ export async function POST(request: Request) {
         .eq('id', body.checklistId);
 
       if (updateError) {
-        return NextResponse.json({ message: updateError.message }, { status: 500 });
+        return NextResponse.json({ message: 'Não foi possível atualizar o checklist.' }, { status: 500 });
       }
 
       const snapshot = await getClientPortalSnapshotByUserId(auth.userId);
@@ -165,7 +176,7 @@ export async function POST(request: Request) {
 
       if (checklistError || !checklistRow) {
         return NextResponse.json(
-          { message: checklistError?.message || 'Checklist nao encontrado para este cliente.' },
+          { message: 'Checklist não encontrado para este cliente.' },
           { status: 404 },
         );
       }
@@ -180,17 +191,38 @@ export async function POST(request: Request) {
       });
 
       if (messageError) {
-        return NextResponse.json({ message: messageError.message }, { status: 500 });
+        return NextResponse.json({ message: 'Não foi possível solicitar a reabertura.' }, { status: 500 });
       }
 
       return NextResponse.json({ ok: true });
     }
 
+    if (body.action === 'message-create') {
+      const text = typeof body.text === 'string' ? body.text.trim() : '';
+      if (text.length < 1 || text.length > 4000) {
+        return NextResponse.json({ message: 'A mensagem deve ter até 4.000 caracteres.' }, { status: 400 });
+      }
+
+      const { error: messageError } = await auth.supabase.from('mensagens_projeto').insert({
+        id: createId('message'),
+        projeto_id: projectId,
+        remetente_tipo: 'cliente',
+        remetente_nome: String(auth.clientRow.nome),
+        texto: text,
+        criado_em: new Date().toISOString(),
+      });
+
+      if (messageError) {
+        return NextResponse.json({ message: 'Não foi possível enviar a mensagem.' }, { status: 500 });
+      }
+
+      const snapshot = await getClientPortalSnapshotByUserId(auth.userId);
+      return NextResponse.json({ ok: true, snapshot });
+    }
+
     return NextResponse.json({ message: 'Acao invalida.' }, { status: 400 });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Nao foi possivel atualizar o portal do cliente.' },
-      { status: 500 },
-    );
+    console.error('client_portal_action_failed', error instanceof Error ? error.message : 'unknown_error');
+    return NextResponse.json({ message: 'Não foi possível atualizar o portal do cliente.' }, { status: 500 });
   }
 }

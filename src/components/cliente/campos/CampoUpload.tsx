@@ -37,7 +37,7 @@ export function CampoUpload({
             void onUpload(file)
               .then((uploaded) => onChange(uploaded))
               .catch((uploadError) =>
-                setError(uploadError instanceof Error ? uploadError.message : 'Nao foi possivel enviar o arquivo.'),
+                setError(uploadError instanceof Error ? uploadError.message : 'Não foi possível enviar o arquivo.'),
               )
               .finally(() => {
                 setUploading(false);

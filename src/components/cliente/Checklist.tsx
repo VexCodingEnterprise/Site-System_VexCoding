@@ -190,7 +190,7 @@ export function Checklist() {
 
         {!online ? (
           <div className="border-b border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-            Voce esta offline. Continuamos salvando localmente e enviaremos assim que a conexao voltar.
+            Você está offline. Continuamos salvando localmente e enviaremos assim que a conexão voltar.
           </div>
         ) : null}
 
@@ -211,7 +211,7 @@ export function Checklist() {
               }}
               submitting={checklistSaving}
               onSubmit={() => {
-                if (!window.confirm('Tem certeza? Apos o envio voce nao podera editar sem reabertura.')) {
+                if (!window.confirm('Tem certeza? Após o envio você não poderá editar sem reabertura.')) {
                   return;
                 }
 

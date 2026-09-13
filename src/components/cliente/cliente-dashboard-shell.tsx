@@ -24,7 +24,7 @@ function ShellContent({ children }: { children: ReactNode }) {
       <div className="border-b border-[var(--line)] bg-[var(--panel)]">
         <div className="mx-auto flex max-w-7xl gap-3 overflow-x-auto px-4 py-3 md:px-6">
           <Link href="/cliente/dashboard" className="border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-sm font-medium">
-            Visao geral
+            Visão geral
           </Link>
           <Link href="/cliente/dashboard/mensagens" className="border border-[var(--line)] bg-[var(--panel)] px-3 py-2 text-sm font-medium">
             Mensagens

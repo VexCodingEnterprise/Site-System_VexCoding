@@ -8,14 +8,14 @@ export async function POST(request: Request) {
     const token = authorization?.startsWith('Bearer ') ? authorization.slice(7) : null;
 
     if (!token) {
-      return NextResponse.json({ message: 'Nao autenticado.' }, { status: 401 });
+      return NextResponse.json({ message: 'Não autenticado.' }, { status: 401 });
     }
 
     const supabase = assertOfficialMode();
     const { data, error } = await supabase.auth.getUser(token);
 
     if (error || !data.user) {
-      return NextResponse.json({ message: 'Sessao do cliente invalida.' }, { status: 401 });
+      return NextResponse.json({ message: 'Sessão do cliente inválida.' }, { status: 401 });
     }
 
     const formData = await request.formData();
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const file = formData.get('file');
 
     if (!projectId) {
-      return NextResponse.json({ message: 'Projeto invalido.' }, { status: 400 });
+      return NextResponse.json({ message: 'Projeto inválido.' }, { status: 400 });
     }
 
     if (!(file instanceof File)) {
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
 
     if (clientError || !clientRow) {
       return NextResponse.json(
-        { message: clientError?.message || 'Projeto nao pertence a este cliente.' },
+        { message: 'Projeto não pertence a este cliente.' },
         { status: 403 },
       );
     }
@@ -52,9 +52,10 @@ export async function POST(request: Request) {
       fileUrl: upload.fileUrl,
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Nao foi possivel enviar o arquivo do checklist.' },
-      { status: 500 },
-    );
+    console.error('checklist_upload_failed', error instanceof Error ? error.message : 'unknown_error');
+    const message = error instanceof Error && /Arquivo inválido|Projeto não encontrado/.test(error.message)
+      ? error.message
+      : 'Não foi possível enviar o arquivo do checklist.';
+    return NextResponse.json({ message }, { status: 400 });
   }
 }

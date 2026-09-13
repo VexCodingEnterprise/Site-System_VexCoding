@@ -32,7 +32,7 @@ export function LeadsView() {
   return (
     <div className="space-y-4">
       <Panel>
-        <SectionTitle title="Leads recebidos" description="Contatos vindos do formulario publico do site." />
+        <SectionTitle title="Leads recebidos" description="Contatos vindos do formulário público do site." />
         <div className="grid grid-cols-1 gap-4 border-b border-[var(--line)] p-4 md:grid-cols-[1fr_220px]">
           <label className="flex items-center gap-3 border border-[var(--line)] bg-[var(--panel)] px-3">
             <Search size={16} className="text-[var(--muted)]" />
@@ -60,7 +60,7 @@ export function LeadsView() {
                 <th className="px-4 py-3">Mensagem</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Data</th>
-                <th className="px-4 py-3">Acoes</th>
+                <th className="px-4 py-3">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -157,11 +157,11 @@ export function LeadsView() {
                       name: selectedLead.projectType === 'Landing Page' ? `Site ${selectedLead.name}` : `Projeto ${selectedLead.name}`,
                       clientName: selectedLead.name,
                       clientEmail: selectedLead.email,
-                      company: selectedLead.name,
+                       company: selectedLead.company || '',
                       type: selectedLead.projectType,
                       description: selectedLead.message,
-                      valueTotal: 18000,
-                      valueReceived: 9000,
+                       valueTotal: 0,
+                       valueReceived: 0,
                       dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 21).toISOString().slice(0, 10),
                       status: 'Briefing',
                       partnerIds: ['rafael', 'lourenzo'],
@@ -169,7 +169,7 @@ export function LeadsView() {
                   }
                   className="h-11 w-full border border-[var(--text)] bg-[var(--text)] text-sm font-medium text-[var(--bg)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {selectedLead.status === 'Convertido' ? 'Lead ja convertido' : 'Converter em projeto'}
+                  {selectedLead.status === 'Convertido' ? 'Lead já convertido' : 'Converter em projeto'}
                 </button>
               </div>
             </motion.aside>

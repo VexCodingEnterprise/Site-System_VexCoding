@@ -6,9 +6,7 @@ const readServerEnv = (key: string) => String(process.env[key] || '').trim();
 
 export const getServerEnv = () => ({
   ...publicEnv,
-  supabaseServiceRoleKey: readServerEnv('SUPABASE_SERVICE_ROLE_KEY'),
-  resendApiKey: readServerEnv('RESEND_API_KEY'),
-  sessionSecret: readServerEnv('SESSION_SECRET') || 'vexcoding-dev-session-secret',
+  supabaseSecretKey: readServerEnv('SUPABASE_SECRET_KEY'),
 });
 
 export const getMissingOfficialSupabaseEnv = () => {
@@ -16,8 +14,8 @@ export const getMissingOfficialSupabaseEnv = () => {
 
   return [
     !serverEnv.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    !serverEnv.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : null,
-    !serverEnv.supabaseServiceRoleKey ? 'SUPABASE_SERVICE_ROLE_KEY' : null,
+    !serverEnv.supabasePublishableKey ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : null,
+    !serverEnv.supabaseSecretKey ? 'SUPABASE_SECRET_KEY' : null,
   ].filter(Boolean) as string[];
 };
 
@@ -26,11 +24,11 @@ export const getInvalidOfficialSupabaseEnv = () => {
 
   return [
     serverEnv.supabaseUrl && !isValidSupabaseUrl(serverEnv.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    serverEnv.supabaseAnonKey && isPlaceholderValue(serverEnv.supabaseAnonKey)
-      ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+    serverEnv.supabasePublishableKey && isPlaceholderValue(serverEnv.supabasePublishableKey)
+      ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
       : null,
-    serverEnv.supabaseServiceRoleKey && isPlaceholderValue(serverEnv.supabaseServiceRoleKey)
-      ? 'SUPABASE_SERVICE_ROLE_KEY'
+    serverEnv.supabaseSecretKey && isPlaceholderValue(serverEnv.supabaseSecretKey)
+      ? 'SUPABASE_SECRET_KEY'
       : null,
   ].filter(Boolean) as string[];
 };
@@ -40,8 +38,8 @@ export const hasOfficialSupabase = () => {
 
   return (
     isValidSupabaseUrl(serverEnv.supabaseUrl) &&
-    !isPlaceholderValue(serverEnv.supabaseAnonKey) &&
-    !isPlaceholderValue(serverEnv.supabaseServiceRoleKey)
+    !isPlaceholderValue(serverEnv.supabasePublishableKey) &&
+    !isPlaceholderValue(serverEnv.supabaseSecretKey)
   );
 };
 
@@ -60,8 +58,8 @@ export const officialSupabaseConfigError = () => {
   }
 
   if (invalid.length) {
-    parts.push(`corrija valores invalidos em: ${invalid.join(', ')}`);
+    parts.push(`corrija valores inválidos em: ${invalid.join(', ')}`);
   }
 
-  return `Supabase oficial nao configurado. ${parts.join('. ')}.`;
+  return `Supabase oficial não configurado. ${parts.join('. ')}.`;
 };

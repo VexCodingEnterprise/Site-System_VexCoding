@@ -1,128 +1,103 @@
-HEAD
-<div align="center">
+# VexCoding Platform
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0,000000,1a1a1a&height=200&section=header&text=VexCoding&fontSize=72&fontColor=ffffff&fontAlignY=38&desc=Código%20que%20move%20negócios&descAlignY=58&descSize=18&descColor=888888" width="100%"/>
-
-<br/>
-
-</div>
-
-
-
->>>>>>> bca1643 (Initial commit)
-# VexCoding Workspace
-
-Base em `Next.js 14 + TypeScript + Tailwind CSS + Supabase`, pronta para deploy na Railway via GitHub.
+Plataforma oficial da VexCoding: site comercial, captação de leads, workspace interno, CRM de projetos e portal autenticado de clientes.
 
 ## Stack
 
-- Next.js 14
-- TypeScript
-- Tailwind CSS
-- Framer Motion
-- Recharts
-- Supabase
-- Railway
+- Next.js 16 + React 19 + TypeScript
+- Supabase hospedado: Auth, Postgres, RLS e Storage privado
+- OpenNext + Cloudflare Workers
+- Tailwind CSS, Framer Motion, Recharts e Lucide
 
-## Rodando localmente
+## Desenvolvimento local sem Docker
 
-1. Instale as dependencias:
+Requisitos: Node.js `>=22` e npm. Este projeto não usa Docker, `supabase start`, banco local ou containers.
 
 ```bash
 npm install
-```
-
-2. Crie o arquivo `.env` com base em `.env.example`.
-
-3. Rode o projeto:
-
-```bash
+# PowerShell: Copy-Item .env.example .env.local
+# macOS/Linux: cp .env.example .env.local
 npm run dev
 ```
 
-4. Validacoes principais:
+Validações:
 
 ```bash
 npm run lint
+npm run test
+npx tsc --noEmit
 npm run build
+npm run build:cloudflare
 ```
 
-## Variaveis de ambiente
+O modo demo permanece disponível apenas quando `NODE_ENV` não é produção e `NEXT_PUBLIC_ENABLE_DEMO_MODE=true`. Ele nunca é ativado automaticamente quando o Supabase falha.
 
-Preencha no `.env` local e tambem no painel da Railway:
+## Variáveis de ambiente
 
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET=project-documents
-SUPABASE_SERVICE_ROLE_KEY=
-RESEND_API_KEY=
-SESSION_SECRET=
-```
-
-## Login
-
-### Modo demo
-
-Se o Supabase oficial nao estiver configurado corretamente, o sistema usa dados locais com estas credenciais:
-
-- usuario: `rafael` | senha: `123456`
-- usuario: `lourenzo` | senha: `123456`
-
-### Modo oficial
-
-No modo oficial, essas mesmas credenciais sao validadas pela tabela `partners` no Supabase. O arquivo `supabase/schema.sql` ja cria os 2 socios com a senha inicial `123456`.
-
-## Supabase
-
-1. Crie um projeto no Supabase.
-2. Abra o `SQL Editor`.
-3. Execute `supabase/schema.sql`.
-4. Confirme o bucket usado em `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET`.
-5. Copie estas variaveis:
+Use [.env.example](.env.example) como referência. Chaves públicas podem estar no bundle; chaves server-side devem ser configuradas como secrets no ambiente de execução.
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+- `SUPABASE_SECRET_KEY` — somente server-side
+- `TURNSTILE_SECRET_KEY` — somente server-side
 
-6. Gere um valor forte para `SESSION_SECRET`.
+Não versione `.env`, `.env.local`, `.dev.vars` ou qualquer arquivo com secrets.
 
-## Deploy na Railway
+## Supabase remoto
 
-1. Envie este projeto para um repositório no GitHub.
-2. Na Railway, crie um novo projeto com `Deploy from GitHub repo`.
-3. Selecione este repositório.
-4. Configure as variaveis de ambiente do projeto com os mesmos valores do `.env`.
-5. A Railway vai usar:
+1. Crie ou selecione o projeto hospedado no Supabase.
+2. Crie os usuários de parceiros em Supabase Auth.
+3. Crie as linhas correspondentes em `partners`, preenchendo `auth_user_id` com o UUID do usuário.
+4. Faça login e vincule a CLI ao projeto remoto: `npx supabase login` e `npx supabase link --project-ref <PROJECT_REF>`.
+5. Revise e simule as migrations — primeiro `202609120000_bootstrap.sql`, depois `202609120001_secure_auth_rls_storage.sql` — com `npx supabase db push --dry-run`; só depois aplique com `npx supabase db push`.
+6. Nunca execute um script com `DROP TABLE ... CASCADE` em produção e nunca use `supabase db reset --linked`.
+7. Confirme que o bucket `project-documents` é privado.
 
-- build command: `npm run build`
-- start command: `npm run start`
+O arquivo `supabase/schema.sql` é um bootstrap não destrutivo. Mudanças posteriores devem ser migrations incrementais.
 
-6. Depois do primeiro deploy, abra o dominio gerado pela Railway.
+## Autenticação e autorização
 
-O arquivo `railway.json` ja foi incluido para padronizar esse deploy.
+- Sócios e clientes usam Supabase Auth.
+- O servidor valida a sessão e o vínculo do usuário antes de operar.
+- O banco usa RLS para separar parceiros, clientes e projetos.
+- Documentos usam signed URLs e caminhos `projects/<project_id>/...`.
+- Credenciais antigas devem ser rotacionadas conforme [SECURITY_ROTATION.md](SECURITY_ROTATION.md).
+
+## Cloudflare Workers
+
+O setup explícito do OpenNext está em `open-next.config.ts` e `wrangler.jsonc`.
+
+```bash
+npm run dev
+npm run build:cloudflare
+npm run preview:cloudflare
+npm run deploy:cloudflare
+```
+
+Antes do primeiro deploy, faça login no Wrangler e configure secrets sem incluí-los em comandos versionados:
+
+```bash
+npx wrangler login
+npx wrangler secret put SUPABASE_SECRET_KEY
+npx wrangler secret put TURNSTILE_SECRET_KEY
+```
+
+Configure também como Variables públicas do Worker (ou no ambiente de build) `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` e `NEXT_PUBLIC_TURNSTILE_SITE_KEY`. Não coloque valores reais no `wrangler.jsonc` versionado.
+
+O deploy de produção e o domínio customizado dependem da conta Cloudflare e devem ser validados em uma URL `workers.dev` antes da troca de DNS.
 
 ## Estrutura principal
 
-- `src/app/page.tsx`: home publica
-- `src/app/login/page.tsx`: login
-- `src/app/dashboard/layout.tsx`: shell autenticado
-- `src/app/api/workspace/route.ts`: API do modo oficial
-- `src/app/api/documents/upload/route.ts`: upload para o Storage
-- `src/components/providers/dashboard-provider.tsx`: estado e acoes do painel
-- `src/lib/server/workspace-db.ts`: integracao server-side com Supabase
-- `src/data/demo.ts`: base demo
+- `src/app/`: páginas, layouts e route handlers
+- `src/components/`: interface pública, dashboard e portal do cliente
+- `src/lib/server/`: autenticação, validação, Supabase server-side e operações do workspace
+- `supabase/migrations/`: alterações incrementais de banco, RLS e Storage
+- `open-next.config.ts` e `wrangler.jsonc`: build/deploy OpenNext para Workers
+- `MIGRATION_PROGRESS.md`: checkpoint da migração
+- `PRODUCTION_CHECKLIST.md`: validação final
 
-## Observacoes importantes
+## Estado operacional
 
-- O modo oficial depende de `SUPABASE_SERVICE_ROLE_KEY`.
-- `SESSION_SECRET` precisa ser forte em producao.
-- Se alterar variaveis de ambiente, refaça o deploy na Railway.
-<<<<<<< HEAD
-
-
-<div align="center">
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0,1a1a1a,000000&height=120&section=footer&text=VexCoding%20·%202026&fontSize=16&fontColor=555555&fontAlignY=65" width="100%"/>
-
-</div>
+O build Next e o build OpenNext são executáveis localmente. A validação de login real, migrations remotas, secrets, deploy e DNS depende de acesso às contas Supabase e Cloudflare; esses passos estão documentados no checklist.

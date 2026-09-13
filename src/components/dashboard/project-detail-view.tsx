@@ -148,7 +148,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
         <div className="border-t border-[var(--line)] px-4 py-3">
           <div className="flex flex-wrap gap-2">
             {[
-              ['overview', 'Visao Geral'],
+              ['overview', 'Visão geral'],
               ['tasks', 'Ramificacoes e Tarefas'],
               ['team', 'Equipe'],
               ['finance', 'Financeiro do Projeto'],
@@ -174,7 +174,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.2fr_0.8fr]">
           <Panel>
-            <SectionTitle title="Visao geral" description="Resumo executivo do projeto." />
+            <SectionTitle title="Visão geral" description="Resumo executivo do projeto." />
             <div className="space-y-4 p-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <label className="space-y-2">
@@ -198,7 +198,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
                   <span className="text-sm font-medium">Progresso</span>
                   <div className="panel-alt px-4 py-3">
                     <div className="flex items-center justify-between text-sm">
-                      <span>{progress}% concluido</span>
+                      <span>{progress}% concluído</span>
                       <span>{tasks.filter((task) => task.status === 'Concluido').length}/{tasks.length} tarefas</span>
                     </div>
                     <div className="mt-3 h-2 bg-[var(--panel)]">
@@ -253,7 +253,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
       {activeTab === 'tasks' && (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[280px_1fr]">
           <Panel>
-            <SectionTitle title="Ramificacoes" description="Modulos do projeto." />
+            <SectionTitle title="Ramificações" description="Módulos do projeto." />
             <div className="space-y-2 p-4">
               {branches.map((branch) => (
                 <button
@@ -380,7 +380,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
       {activeTab === 'team' && (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_380px]">
           <Panel>
-            <SectionTitle title="Socios envolvidos" description="Carga por socio dentro do projeto." />
+            <SectionTitle title="Sócios envolvidos" description="Carga por sócio dentro do projeto." />
             <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-3">
               {teamDistribution.map((partner) => (
                 <div key={partner.name} className="panel-alt px-4 py-4">
@@ -393,7 +393,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
           </Panel>
 
           <Panel>
-            <SectionTitle title="Distribuicao" description="Carga visual por socio." />
+            <SectionTitle title="Distribuição" description="Carga visual por sócio." />
             <div className="h-[320px] p-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -457,7 +457,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
                   </ResponsiveContainer>
                 </div>
                 <p className="mt-4 text-sm muted">
-                  Divisao igual por socio envolvido: {formatCurrency(project.partnerIds.length ? project.valueTotal / project.partnerIds.length : 0)}
+                  Divisão igual por sócio envolvido: {formatCurrency(project.partnerIds.length ? project.valueTotal / project.partnerIds.length : 0)}
                 </p>
               </div>
             </div>
@@ -521,7 +521,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
           </Panel>
 
           <Panel>
-            <SectionTitle title="Upload rapido" description="Linke arquivos do Supabase Storage ou documentos externos." />
+            <SectionTitle title="Upload rápido" description="Envie arquivos para o Supabase Storage ou use documentos externos." />
             <div className="space-y-4 p-4">
               <input className="field" placeholder="Nome do documento" value={documentForm.name} onChange={(event) => setDocumentForm((current) => ({ ...current, name: event.target.value }))} />
               {mode === 'official' ? (
@@ -567,7 +567,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
               </button>
               <p className="text-xs muted">
                 {mode === 'official'
-                  ? 'Os arquivos enviados aqui vao para o Supabase Storage e ficam vinculados ao projeto.'
+                  ? 'Os arquivos enviados aqui vão para o Supabase Storage e ficam vinculados ao projeto.'
                   : 'No modo demo use um link manual para simular o documento.'}
               </p>
               <div className="panel-alt px-4 py-4">
@@ -575,7 +575,7 @@ export function ProjectDetailView({ projectId }: { projectId: string }) {
                 <textarea className="field mt-3" rows={4} value={testimonial || project.testimonial || ''} onChange={(event) => setTestimonial(event.target.value)} />
                 <label className="mt-3 flex items-center gap-3 text-sm">
                   <input type="checkbox" checked={useAsCase} onChange={(event) => setUseAsCase(event.target.checked)} />
-                  Usar este projeto como case no portfolio publico
+                  Marcar para possível case público após autorização
                 </label>
                 <button
                   type="button"

@@ -1,27 +1,22 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   CircleDollarSign,
   Code2,
-  ExternalLink,
   Globe,
   Instagram,
   Linkedin,
   Mail,
   Menu,
   MessageSquare,
-  PlayCircle,
   ShieldCheck,
   ShoppingCart,
   Wrench,
   X,
 } from 'lucide-react';
-import { portfolioProjects, serviceTypes } from '../data/mockData';
-import { getDemoWorkspace, getStoredMode, saveDemoWorkspace } from '../lib/demo-store';
-import { createId } from '../lib/utils';
+import { serviceTypes } from '../data/public-content';
 import { Card, FadeUp, Field, ParticlesBackground, SectionHeading, inputClassName } from './shared';
 
 const MotionDiv = motion.div;
@@ -45,8 +40,8 @@ export const Navbar = ({ onOpenLogin, onOpenClientArea }) => {
   }, []);
 
   const navLinks = [
-    { name: 'Servicos', href: '#servicos' },
-    { name: 'Portfolio', href: '#portfolio' },
+    { name: 'Serviços', href: '#servicos' },
+    { name: 'Soluções', href: '#portfolio' },
     { name: 'Diferenciais', href: '#diferenciais' },
     { name: 'Contato', href: '#contato' },
   ];
@@ -87,13 +82,13 @@ export const Navbar = ({ onOpenLogin, onOpenClientArea }) => {
             onClick={onOpenClientArea}
             className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-[#0A0A0A] transition hover:border-[#0A0A0A] hover:bg-gray-50"
           >
-            Area do cliente
+            Área do cliente
           </button>
           <a
             href="#contato"
             className="rounded-xl bg-[#0A0A0A] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-900"
           >
-            Solicitar orcamento
+            Solicitar orçamento
           </a>
         </nav>
 
@@ -139,14 +134,14 @@ export const Navbar = ({ onOpenLogin, onOpenClientArea }) => {
                 }}
                 className="rounded-xl border border-gray-200 px-4 py-3 text-left text-sm font-medium text-[#0A0A0A]"
               >
-                Area do cliente
+                Área do cliente
               </button>
               <a
                 href="#contato"
                 onClick={() => setMobileMenuOpen(false)}
                 className="rounded-xl bg-[#0A0A0A] px-4 py-3 text-center text-sm font-medium text-white"
               >
-                Solicitar orcamento
+                Solicitar orçamento
               </a>
             </div>
           </MotionDiv>
@@ -164,12 +159,12 @@ export const Hero = () => (
         <h1 className="mb-6 text-5xl font-bold leading-[1.05] tracking-tight text-[#0A0A0A] md:text-7xl">
           Alguns vendem sites.
           <br />
-          A <span className="bg-gradient-to-r from-[#0A0A0A] to-gray-400 bg-clip-text text-transparent">VexCoding</span> construi operacoes digitais que crescem com voce.
+          A <span className="bg-gradient-to-r from-[#0A0A0A] to-gray-400 bg-clip-text text-transparent">VexCoding</span> constrói operações digitais que crescem com você.
         </h1>
       </FadeUp>
       <FadeUp delay={0.15}>
         <p className="mx-auto mb-10 max-w-2xl text-lg font-light text-gray-500 md:text-xl">
-          Sites, sistemas e estruturas digitais criadas para gerar clareza, organizacao e resultado. Visual premium, base moderna e operacao pronta para escalar.
+          Sites, sistemas e estruturas digitais criadas para gerar clareza, organização e resultado. Visual premium, base moderna e operação pronta para escalar.
         </p>
       </FadeUp>
       <FadeUp delay={0.25} className="flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -177,7 +172,7 @@ export const Hero = () => (
           href="#portfolio"
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0A0A0A] px-8 py-4 font-medium text-white shadow-lg shadow-gray-200 transition hover:scale-[1.02] hover:bg-gray-900 sm:w-auto"
         >
-          Ver portfolio <ArrowRight size={18} />
+          Ver soluções <ArrowRight size={18} />
         </a>
         <a
           href="#contato"
@@ -195,12 +190,12 @@ export const Services = () => {
     {
       icon: <Globe size={30} strokeWidth={1.7} />,
       title: 'Sites e landing pages',
-      description: 'Estruturas comerciais com narrativa forte, carregamento rapido e base pronta para conversao.',
+      description: 'Estruturas comerciais com narrativa forte, carregamento rápido e base pronta para conversão.',
     },
     {
       icon: <Wrench size={30} strokeWidth={1.7} />,
       title: 'Sistemas sob medida',
-      description: 'Ferramentas internas, paineis, areas autenticadas e operacoes digitais desenhadas para o seu fluxo.',
+      description: 'Ferramentas internas, painéis, áreas autenticadas e operações digitais desenhadas para o seu fluxo.',
     },
     {
       icon: <ShoppingCart size={30} strokeWidth={1.7} />,
@@ -217,7 +212,7 @@ export const Services = () => {
             eyebrow="O que fazemos"
             title={
               <>
-                Solucoes em codigo,
+                Soluções em código,
                 <br />
                 foco real no negocio.
               </>
@@ -242,49 +237,34 @@ export const Services = () => {
   );
 };
 
-export const Portfolio = ({ onOpenProject }) => (
+export const Portfolio = () => (
   <section id="portfolio" className="bg-[#F5F5F5] py-24 md:py-32">
     <div className="mx-auto max-w-7xl px-6 md:px-12">
       <FadeUp>
         <SectionHeading
-          eyebrow="Nossos projetos"
-          title="Portfolio exemplo pronto para seus cases reais"
-          description="Cada projeto abaixo abre descricao, video e uma pagina exemplo. Assim voce ja publica o site completo agora e depois so troca o conteudo pelos trabalhos reais."
+          eyebrow="Soluções"
+          title="Estruturas digitais pensadas para operar"
+          description="Apresentamos capacidades e frentes de trabalho da VexCoding. Projetos e resultados serão publicados somente quando houver autorização dos clientes."
           actions={
             <a href="#portfolio-grid" className="inline-flex items-center gap-2 text-sm font-medium text-[#0A0A0A] transition hover:text-gray-600">
-              Ver todos os projetos <ExternalLink size={16} />
+              Falar sobre uma solução <ArrowRight size={16} />
             </a>
           }
         />
       </FadeUp>
       <div id="portfolio-grid" className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2">
-        {portfolioProjects.map((project, index) => (
-          <FadeUp key={project.id} delay={index * 0.08}>
-            <button
-              type="button"
-              onClick={() => onOpenProject(project)}
-              className="group w-full text-left"
-            >
-              <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-[32px] bg-gray-200">
-                <img
-                  src={project.image}
-                  alt={project.title}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition duration-700 ease-out group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
-              </div>
-              <div className="flex items-center justify-between gap-4 px-1">
-                <div>
-                  <p className="text-sm text-gray-500">{project.category}</p>
-                  <h3 className="mt-1 text-xl font-semibold text-[#0A0A0A]">{project.title}</h3>
-                  <p className="mt-2 max-w-lg text-sm leading-relaxed text-gray-500">{project.shortDescription}</p>
-                </div>
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 text-[#0A0A0A] transition group-hover:border-[#0A0A0A] group-hover:bg-[#0A0A0A] group-hover:text-white">
-                  <ArrowRight size={18} />
-                </div>
-              </div>
-            </button>
+        {[
+          ['Sites e landing pages', 'Páginas rápidas, claras e orientadas à conversão, com captação conectada.'],
+          ['Sistemas internos e SaaS', 'Produtos sob medida para organizar processos, dados, permissões e decisões.'],
+          ['Portais autenticados', 'Áreas para clientes com etapas, documentos, mensagens e checklists seguros.'],
+          ['Automação e integrações', 'Conexões entre ferramentas, APIs e rotinas para reduzir trabalho manual.'],
+        ].map(([title, description], index) => (
+          <FadeUp key={title} delay={index * 0.08}>
+            <Card className="h-full rounded-[32px] p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-400">0{index + 1}</p>
+              <h3 className="mt-5 text-xl font-semibold text-[#0A0A0A]">{title}</h3>
+              <p className="mt-3 text-sm leading-7 text-gray-500">{description}</p>
+            </Card>
           </FadeUp>
         ))}
       </div>
@@ -297,22 +277,22 @@ export const Differentials = () => {
     {
       icon: <CheckCircle2 size={22} />,
       title: 'Entrega com clareza',
-      desc: 'Cronograma, proximo passo e responsavel visiveis para voce acompanhar sem ruido.',
+      desc: 'Cronograma, próximo passo e responsável visíveis para você acompanhar sem ruído.',
     },
     {
       icon: <MessageSquare size={22} />,
-      title: 'Comunicacao direta',
-      desc: 'Sem labirinto tecnico. Voce sabe o que esta sendo feito e porque aquilo importa.',
+      title: 'Comunicação direta',
+      desc: 'Sem labirinto técnico. Você sabe o que está sendo feito e por que aquilo importa.',
     },
     {
       icon: <Wrench size={22} />,
       title: 'Base pronta para operar',
-      desc: 'Nao entregamos so tela bonita. Entregamos processo, integracao e manutencao simples.',
+      desc: 'Não entregamos só tela bonita. Entregamos processo, integração e manutenção simples.',
     },
     {
       icon: <CircleDollarSign size={22} />,
-      title: 'Visao de negocio',
-      desc: 'Design, codigo e decisao caminhando juntos para gerar retorno real.',
+      title: 'Visão de negócio',
+      desc: 'Design, código e decisão caminhando juntos para gerar retorno real.',
     },
   ];
 
@@ -325,7 +305,7 @@ export const Differentials = () => {
             Diferente do mercado que entrega bonito e desaparece.
           </h2>
           <p className="mt-6 max-w-md text-gray-500">
-            Nosso trabalho une design limpo, estrutura comercial e operacao interna. O objetivo nao e impressionar so na primeira dobra. E fazer o negocio funcionar.
+            Nosso trabalho une design limpo, estrutura comercial e operação interna. O objetivo não é impressionar só na primeira dobra. É fazer o negócio funcionar.
           </p>
         </FadeUp>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:col-span-2">
@@ -350,18 +330,10 @@ export const Differentials = () => {
 
 export const Testimonials = () => {
   const items = [
-    {
-      quote:
-        'A VexCoding conseguiu traduzir nossa ideia em uma plataforma clara, rapida e muito facil de vender para o cliente final.',
-      name: 'Rafael Costa',
-      role: 'CEO, TechStart',
-    },
-    {
-      quote:
-        'A sensacao foi de ter uma equipe que pensa tanto na tela quanto na operacao. Tudo ficou mais organizado depois da entrega.',
-      name: 'Mariana Silva',
-      role: 'Diretora de Marketing, Minimal Co.',
-    },
+    ['Diagnóstico', 'Entendemos o processo, os usuários e o resultado esperado antes de escolher a tecnologia.'],
+    ['Construção', 'Desenhamos a experiência, implementamos a base e conectamos as operações necessárias.'],
+    ['Validação', 'Testamos os fluxos principais, ajustamos com você e preparamos a entrega para o uso real.'],
+    ['Evolução', 'Documentamos o que foi construído e deixamos um caminho claro para manutenção.'],
   ];
 
   return (
@@ -369,28 +341,20 @@ export const Testimonials = () => {
       <div className="mx-auto max-w-7xl px-6 md:px-12">
         <FadeUp>
           <h2 className="text-center text-3xl font-bold tracking-tight text-[#0A0A0A] md:text-4xl">
-            O que nossos clientes percebem no projeto
+            Como conduzimos cada projeto
           </h2>
         </FadeUp>
         <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2">
-          {items.map((item, index) => (
-            <FadeUp key={item.name} delay={index * 0.08}>
+          {items.map(([title, description], index) => (
+            <FadeUp key={title} delay={index * 0.08}>
               <Card className="relative rounded-[32px] p-8 md:p-10">
                 <div className="absolute left-6 top-6 text-[#0A0A0A]/10">
                   <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
                   </svg>
                 </div>
-                <p className="relative z-10 pt-4 text-lg italic leading-relaxed text-gray-700">"{item.quote}"</p>
-                <div className="mt-8 flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 font-bold text-gray-600">
-                    {item.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-[#0A0A0A]">{item.name}</h3>
-                    <p className="text-sm text-gray-500">{item.role}</p>
-                  </div>
-                </div>
+                <p className="relative z-10 pt-4 text-lg font-semibold text-[#0A0A0A]">{title}</p>
+                <p className="mt-4 text-sm leading-7 text-gray-500">{description}</p>
               </Card>
             </FadeUp>
           ))}
@@ -408,13 +372,13 @@ export const CTAFinal = () => (
           Pronto para transformar sua ideia em um sistema de verdade?
         </h2>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-400">
-          A landing ja vende, o portfolio ja prova e a area interna ja organiza o fluxo. Agora e so colocar seus projetos reais em cima dessa estrutura.
+          O site apresenta a proposta, a captação organiza as oportunidades e a área interna dá visibilidade ao fluxo. O próximo passo é construir a solução certa para o seu negócio.
         </p>
         <a
           href="#contato"
           className="mt-10 inline-flex items-center rounded-xl bg-white px-8 py-4 font-bold text-[#0A0A0A] transition hover:scale-[1.02] hover:bg-gray-100"
         >
-          Solicitar orcamento agora
+          Solicitar orçamento agora
         </a>
       </FadeUp>
     </div>
@@ -425,6 +389,40 @@ export const Contact = () => {
   const [formData, setFormData] = useState(createContactForm());
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+
+  useEffect(() => {
+    const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    if (!siteKey) return undefined;
+
+    const renderWidget = () => {
+      const container = document.getElementById('vexcoding-turnstile');
+      if (!container || !window.turnstile || container.dataset.rendered === 'true') return;
+      window.turnstile.render(container, {
+        sitekey: siteKey,
+        callback: (token) => setTurnstileToken(token),
+        'expired-callback': () => setTurnstileToken(''),
+        'error-callback': () => setTurnstileToken(''),
+      });
+      container.dataset.rendered = 'true';
+    };
+
+    const existingScript = document.querySelector('script[data-turnstile]');
+    if (existingScript) {
+      renderWidget();
+      return undefined;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.dataset.turnstile = 'true';
+    script.addEventListener('load', renderWidget);
+    document.head.appendChild(script);
+
+    return () => script.removeEventListener('load', renderWidget);
+  }, []);
 
   const handleChange = (key, value) => {
     setFormData((current) => ({ ...current, [key]: value }));
@@ -436,44 +434,31 @@ export const Contact = () => {
     setMessage('');
 
     try {
-      if (getStoredMode() === 'official') {
-        const response = await fetch('/api/public/lead', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: formData.name,
-            email: formData.email,
-            projectType: formData.project_type,
-            message: formData.message,
-          }),
-        });
-        const payload = await response.json();
-
-        if (!response.ok) {
-          throw new Error(payload.message || 'Nao foi possivel enviar seu contato agora.');
-        }
-      } else {
-        const database = getDemoWorkspace();
-        database.leads.unshift({
-          id: createId('lead'),
+      const response = await fetch('/api/public/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           name: formData.name,
           email: formData.email,
+          company: formData.company,
           projectType: formData.project_type,
           message: formData.message,
-          status: 'Novo',
-          createdAt: new Date().toISOString(),
-          convertedAt: null,
-          projectId: null,
-        });
-        saveDemoWorkspace(database);
+          turnstileToken,
+        }),
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'Não foi possível enviar seu contato agora.');
       }
 
       setFormData(createContactForm());
+      setTurnstileToken('');
       setStatus('success');
-      setMessage('Mensagem enviada. Ela ja esta pronta para aparecer na area interna dos socios.');
+      setMessage('Mensagem enviada. Ela já está pronta para aparecer na área interna dos sócios.');
     } catch (error) {
       setStatus('error');
-      setMessage(error.message || 'Nao foi possivel enviar seu contato agora.');
+      setMessage(error.message || 'Não foi possível enviar seu contato agora.');
     }
   };
 
@@ -484,7 +469,7 @@ export const Contact = () => {
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-gray-400">Contato</p>
           <h2 className="text-3xl font-bold tracking-tight text-[#0A0A0A] md:text-5xl">Vamos conversar.</h2>
           <p className="mt-6 max-w-xl text-lg text-gray-500">
-            Preencha o formulario e sua mensagem entra direto no painel interno da VexCoding para qualificacao, proposta e transformacao em projeto.
+             Preencha o formulário e sua mensagem entra direto no painel interno da VexCoding para qualificação, proposta e transformação em projeto.
           </p>
           <div className="mt-8 space-y-4 text-gray-600">
             <div className="flex items-center gap-3">
@@ -552,9 +537,10 @@ export const Contact = () => {
                   value={formData.message}
                   onChange={(event) => handleChange('message', event.target.value)}
                   className={`${inputClassName} resize-none`}
-                  placeholder="Fale sobre a ideia, prazo, referencias e o que precisa ser construido."
+                  placeholder="Fale sobre a ideia, prazo, referências e o que precisa ser construído."
                 />
               </Field>
+              <div id="vexcoding-turnstile" className="min-h-16" aria-label="Proteção anti-spam" />
               <button
                 type="submit"
                 disabled={status === 'loading'}
@@ -595,7 +581,7 @@ export const Footer = ({ onOpenLogin, onOpenClientArea, onOpenPolicy }) => (
             <span className="text-xl font-bold text-[#0A0A0A]">VexCoding</span>
           </a>
           <p className="max-w-sm text-sm text-gray-500">
-            Desenvolvimento de sites, sistemas e operacoes digitais com estrutura para vender, entregar e crescer.
+            Desenvolvimento de sites, sistemas e operações digitais com estrutura para vender, entregar e crescer.
           </p>
         </div>
 
@@ -612,7 +598,7 @@ export const Footer = ({ onOpenLogin, onOpenClientArea, onOpenPolicy }) => (
             onClick={onOpenClientArea}
             className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-[#0A0A0A] transition hover:border-[#0A0A0A] hover:bg-white"
           >
-            Area do cliente
+            Área do cliente
           </button>
           <a
             href="https://instagram.com/vexcoding"
@@ -642,7 +628,7 @@ export const Footer = ({ onOpenLogin, onOpenClientArea, onOpenPolicy }) => (
             Termos de uso
           </button>
           <button type="button" onClick={() => onOpenPolicy('privacy')} className="transition hover:text-[#0A0A0A]">
-            Politica de privacidade
+            Política de privacidade
           </button>
         </div>
       </div>
@@ -650,118 +636,17 @@ export const Footer = ({ onOpenLogin, onOpenClientArea, onOpenPolicy }) => (
   </footer>
 );
 
-export const ProjectModal = ({ project, onClose, navigateTo }) => {
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
-
-  if (!project) {
-    return null;
-  }
-
-  return (
-    <AnimatePresence>
-      <MotionDiv
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-        onClick={onClose}
-      >
-        <MotionDiv
-          initial={{ opacity: 0, y: 30, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.98 }}
-          transition={{ duration: 0.25 }}
-          className="max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-[36px] bg-white"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className="relative aspect-[16/8] overflow-hidden rounded-t-[36px] bg-gray-200">
-            <img src={project.image} alt={project.title} className="h-full w-full object-cover" />
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#0A0A0A] shadow-lg"
-            >
-              <X size={18} />
-            </button>
-          </div>
-          <div className="grid gap-8 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-10">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-gray-400">{project.category}</p>
-              <h3 className="mt-3 text-3xl font-bold tracking-tight text-[#0A0A0A]">{project.title}</h3>
-              <p className="mt-4 text-base leading-relaxed text-gray-600">{project.fullDescription}</p>
-
-              <div className="mt-8 overflow-hidden rounded-[28px] border border-gray-100 bg-[#0A0A0A]">
-                <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 text-sm font-medium text-white">
-                  <PlayCircle size={16} />
-                  Video demonstrativo
-                </div>
-                <video src={project.videoUrl} controls className="aspect-video w-full bg-black" />
-              </div>
-            </div>
-
-            <div className="space-y-5">
-              <Card className="rounded-[28px]">
-                <p className="text-sm font-semibold text-[#0A0A0A]">Resumo rapido</p>
-                <p className="mt-2 text-sm leading-relaxed text-gray-500">{project.shortDescription}</p>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {project.stack.map((item) => (
-                    <span key={item} className="rounded-full bg-[#F5F5F5] px-3 py-1.5 text-xs font-medium text-gray-600">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </Card>
-              <Card className="rounded-[28px]">
-                <p className="text-sm font-semibold text-[#0A0A0A]">Impactos exibidos</p>
-                <div className="mt-4 space-y-3">
-                  {project.metrics.map((metric) => (
-                    <div key={metric} className="flex items-start gap-3 text-sm text-gray-600">
-                      <CheckCircle2 size={16} className="mt-0.5 text-[#0A0A0A]" />
-                      <span>{metric}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              <button
-                type="button"
-                onClick={() => navigateTo(`/projetos/${project.slug}`)}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0A0A0A] px-6 py-4 font-medium text-white transition hover:bg-gray-900"
-              >
-                {project.linkLabel} <ExternalLink size={17} />
-              </button>
-            </div>
-          </div>
-        </MotionDiv>
-      </MotionDiv>
-    </AnimatePresence>
-  );
-};
-
 export const PolicyModal = ({ type, onClose }) => {
   const content = {
     terms: {
       title: 'Termos de uso',
       body:
-        'Este site apresenta projetos demonstrativos da VexCoding e um fluxo comercial conectado ao Supabase. Informacoes enviadas no formulario sao usadas apenas para organizacao comercial, proposta e atendimento.',
+        'Este site apresenta as capacidades da VexCoding e um fluxo comercial conectado ao Supabase. Informações enviadas no formulário são usadas apenas para organização comercial, proposta e atendimento.',
     },
     privacy: {
-      title: 'Politica de privacidade',
+      title: 'Política de privacidade',
       body:
-        'Os dados enviados no formulario ficam armazenados para atendimento comercial e gestao interna. Quando o Supabase estiver configurado, as informacoes ficam sob sua conta, com politicas de seguranca e acesso autenticado para os socios.',
+        'Os dados enviados no formulário ficam armazenados para atendimento comercial e gestão interna. As informações ficam sob a conta Supabase da VexCoding, com políticas de segurança e acesso autenticado para os sócios.',
     },
   }[type];
 
@@ -787,7 +672,7 @@ export const PolicyModal = ({ type, onClose }) => {
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-gray-400">Informacoes legais</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-gray-400">Informações legais</p>
               <h3 className="mt-2 text-2xl font-bold tracking-tight text-[#0A0A0A]">{content.title}</h3>
             </div>
             <button type="button" onClick={onClose} className="rounded-full bg-[#F5F5F5] p-3 text-[#0A0A0A]">
@@ -804,118 +689,21 @@ export const PolicyModal = ({ type, onClose }) => {
 export const SiteShell = ({
   onOpenLogin,
   onOpenClientArea,
-  selectedProject,
-  setSelectedProject,
   policyModal,
   setPolicyModal,
-  navigateTo,
 }) => (
   <>
     <Navbar onOpenLogin={onOpenLogin} onOpenClientArea={onOpenClientArea} />
     <main className="antialiased text-[#0A0A0A] selection:bg-[#0A0A0A] selection:text-white">
       <Hero />
       <Services />
-      <Portfolio onOpenProject={setSelectedProject} />
+      <Portfolio />
       <Differentials />
       <Testimonials />
       <CTAFinal />
       <Contact />
     </main>
     <Footer onOpenLogin={onOpenLogin} onOpenClientArea={onOpenClientArea} onOpenPolicy={setPolicyModal} />
-    {selectedProject ? (
-      <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} navigateTo={navigateTo} />
-    ) : null}
     {policyModal ? <PolicyModal type={policyModal} onClose={() => setPolicyModal(null)} /> : null}
   </>
 );
-
-export const PublicProjectPage = ({ project, onBackToSite }) => {
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-[#F5F5F5] px-6 py-12">
-        <div className="mx-auto max-w-4xl">
-          <button
-            type="button"
-            onClick={onBackToSite}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-[#0A0A0A]"
-          >
-            <ArrowLeft size={16} /> Voltar ao site
-          </button>
-          <Card className="mt-10 rounded-[32px] p-10 text-center">
-            <h1 className="text-3xl font-bold tracking-tight text-[#0A0A0A]">Projeto nao encontrado</h1>
-            <p className="mt-4 text-gray-500">Esse slug ainda nao esta cadastrado no portfolio exemplo.</p>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#F5F5F5] px-6 py-8 md:px-12 md:py-12">
-      <div className="mx-auto max-w-6xl">
-        <button
-          type="button"
-          onClick={onBackToSite}
-          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-[#0A0A0A] shadow-sm"
-        >
-          <ArrowLeft size={16} /> Voltar ao site
-        </button>
-
-        <div className="mt-8 overflow-hidden rounded-[40px] border border-gray-100 bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
-          <div className="grid gap-8 p-6 md:grid-cols-[1.1fr_0.9fr] md:p-10">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-gray-400">{project.category}</p>
-              <h1 className="mt-3 text-4xl font-bold tracking-tight text-[#0A0A0A] md:text-5xl">{project.title}</h1>
-              <p className="mt-5 max-w-2xl text-lg leading-relaxed text-gray-600">{project.fullDescription}</p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                {project.stack.map((item) => (
-                  <span key={item} className="rounded-full bg-[#F5F5F5] px-4 py-2 text-sm font-medium text-gray-600">
-                    {item}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                {project.metrics.map((metric) => (
-                  <Card key={metric} className="rounded-[24px] bg-[#FAFAFA]">
-                    <p className="text-sm leading-relaxed text-gray-600">{metric}</p>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-5">
-              <div className="overflow-hidden rounded-[28px] border border-gray-100">
-                <img src={project.image} alt={project.title} className="aspect-[4/3] w-full object-cover" />
-              </div>
-              <div className="overflow-hidden rounded-[28px] border border-gray-100 bg-[#0A0A0A]">
-                <div className="flex items-center gap-2 border-b border-white/10 px-5 py-4 text-sm font-medium text-white">
-                  <PlayCircle size={16} />
-                  Video do projeto
-                </div>
-                <video src={project.videoUrl} controls className="aspect-video w-full bg-black" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-col gap-4 md:flex-row">
-          <button
-            type="button"
-            onClick={onBackToSite}
-            className="rounded-xl border border-gray-200 bg-white px-6 py-4 font-medium text-[#0A0A0A] transition hover:border-[#0A0A0A]"
-          >
-            Ver mais projetos
-          </button>
-          <a
-            href="/#contato"
-            className="rounded-xl bg-[#0A0A0A] px-6 py-4 text-center font-medium text-white transition hover:bg-gray-900"
-          >
-            Quero um projeto nesse nivel
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-};

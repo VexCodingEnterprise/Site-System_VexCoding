@@ -17,7 +17,7 @@ import type {
   Task,
   WorkspaceData,
 } from '@/types/dashboard';
-import type { Lead, WorkspaceSettings } from '@/types/dashboard';
+import type { Lead } from '@/types/dashboard';
 import {
   createChecklistFromTemplate,
   defaultChecklistTemplates,
@@ -34,7 +34,6 @@ export const fixedPartners: Partner[] = [
     role: 'Socio de produto',
     email: 'rafael@vexcoding.com',
     avatarColor: '#0A0A0A',
-    passwordHash: '1bea026c0a726221de7d97e6778571e1e8fd2a4a79b6227b4d66ba157b251ac8',
     notificationsEmail: true,
     notificationsBrowser: true,
     themePreference: 'dark',
@@ -47,7 +46,6 @@ export const fixedPartners: Partner[] = [
     role: 'Socio de operacoes',
     email: 'lourenzo@vexcoding.com',
     avatarColor: '#444444',
-    passwordHash: '61e50f0b100ebfba6f0ab8b3c84e39ff45bf5fce013f0eac3ec7e12dbc530dbc',
     notificationsEmail: true,
     notificationsBrowser: true,
     themePreference: 'light',
@@ -645,11 +643,6 @@ const checklistResponses: ChecklistResponse[] = [
 
 const stageTemplates: StageTemplate[] = cloneDeep(defaultStageTemplates);
 
-const settings: WorkspaceSettings = {
-  resendEnabled: false,
-  resendFromEmail: 'contato@vexcoding.com',
-};
-
 export const demoWorkspace: WorkspaceData = {
   partners: fixedPartners,
   leads,
@@ -668,7 +661,6 @@ export const demoWorkspace: WorkspaceData = {
   projectChecklists: [orbitChecklist, nexusChecklist, luminaChecklist],
   checklistResponses,
   stageTemplates,
-  settings,
 };
 
 export const createDemoWorkspace = () => cloneDeep(demoWorkspace);

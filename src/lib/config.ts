@@ -1,10 +1,6 @@
 export const publicEnv = {
   supabaseUrl: (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim(),
-  supabaseAnonKey: (
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    ''
-  ).trim(),
+  supabasePublishableKey: (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '').trim(),
   projectDocumentsBucket: (process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'project-documents').trim(),
 };
 
@@ -17,8 +13,7 @@ export const isPlaceholderValue = (value: string) => {
 
   return (
     normalized.includes('SEU-PROJETO') ||
-    normalized.includes('SUA_SERVICE_ROLE_KEY') ||
-    normalized.includes('SEU_ANON_KEY') ||
+    normalized.includes('SUA_PUBLISHABLE_KEY') ||
     normalized.includes('gere-um-segredo')
   );
 };
@@ -39,28 +34,28 @@ export const isValidSupabaseUrl = (value: string) => {
 export const getMissingOfficialSupabaseEnv = () =>
   [
     !publicEnv.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    !publicEnv.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : null,
+    !publicEnv.supabasePublishableKey ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : null,
   ].filter(Boolean) as string[];
 
 export const getMissingPublicSupabaseEnv = () =>
   [
     !publicEnv.supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    !publicEnv.supabaseAnonKey ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : null,
+    !publicEnv.supabasePublishableKey ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY' : null,
   ].filter(Boolean) as string[];
 
 export const getInvalidOfficialSupabaseEnv = () =>
   [
     publicEnv.supabaseUrl && !isValidSupabaseUrl(publicEnv.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    publicEnv.supabaseAnonKey && isPlaceholderValue(publicEnv.supabaseAnonKey)
-      ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+    publicEnv.supabasePublishableKey && isPlaceholderValue(publicEnv.supabasePublishableKey)
+      ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
       : null,
   ].filter(Boolean) as string[];
 
 export const getInvalidPublicSupabaseEnv = () =>
   [
     publicEnv.supabaseUrl && !isValidSupabaseUrl(publicEnv.supabaseUrl) ? 'NEXT_PUBLIC_SUPABASE_URL' : null,
-    publicEnv.supabaseAnonKey && isPlaceholderValue(publicEnv.supabaseAnonKey)
-      ? 'NEXT_PUBLIC_SUPABASE_ANON_KEY ou NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+    publicEnv.supabasePublishableKey && isPlaceholderValue(publicEnv.supabasePublishableKey)
+      ? 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
       : null,
   ].filter(Boolean) as string[];
 
@@ -76,10 +71,10 @@ const buildConfigErrorMessage = (missing: string[], invalid: string[]) => {
   }
 
   if (invalid.length) {
-    parts.push(`corrija valores invalidos em: ${invalid.join(', ')}`);
+    parts.push(`corrija valores inválidos em: ${invalid.join(', ')}`);
   }
 
-  return `Supabase oficial nao configurado. ${parts.join('. ')}.`;
+  return `Supabase oficial não configurado. ${parts.join('. ')}.`;
 };
 
 export const officialSupabaseConfigError = () =>

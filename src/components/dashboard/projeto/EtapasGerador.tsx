@@ -17,8 +17,8 @@ export function EtapasGerador({
       <div className="space-y-4 p-4">
         <div className="panel-alt px-4 py-4 text-sm muted">
           {checklist?.status === 'completo'
-            ? 'Checklist completo. A IA local da VexCoding ja pode sugerir etapas e datas proporcionais ao escopo.'
-            : 'Assim que o checklist avancar, voce pode gerar etapas automaticamente com base no tipo e na complexidade do projeto.'}
+            ? 'Checklist completo. A IA local da VexCoding já pode sugerir etapas e datas proporcionais ao escopo.'
+            : 'Assim que o checklist avançar, você poderá gerar etapas automaticamente com base no tipo e na complexidade do projeto.'}
         </div>
         <button
           type="button"

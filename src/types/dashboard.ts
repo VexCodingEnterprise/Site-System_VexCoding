@@ -38,7 +38,6 @@ export interface Partner {
   role: string;
   email: string;
   avatarColor: string;
-  passwordHash: string;
   notificationsEmail: boolean;
   notificationsBrowser: boolean;
   themePreference: ThemePreference;
@@ -49,6 +48,7 @@ export interface Lead {
   id: string;
   name: string;
   email: string;
+  company?: string;
   projectType: string;
   message: string;
   status: LeadStatus;
@@ -201,11 +201,6 @@ export interface ChecklistResponse {
   updatedAt: string;
 }
 
-export interface WorkspaceSettings {
-  resendEnabled: boolean;
-  resendFromEmail: string;
-}
-
 export interface ClientAccount {
   id: string;
   userId: string | null;
@@ -293,7 +288,6 @@ export interface WorkspaceData {
   projectChecklists: ProjectChecklist[];
   checklistResponses: ChecklistResponse[];
   stageTemplates: StageTemplate[];
-  settings: WorkspaceSettings;
 }
 
 export interface DashboardSession {
@@ -307,8 +301,10 @@ export interface DashboardSession {
 export interface PublicLeadPayload {
   name: string;
   email: string;
+  company: string;
   projectType: string;
   message: string;
+  turnstileToken?: string;
 }
 
 export interface ClientPortalSnapshot {

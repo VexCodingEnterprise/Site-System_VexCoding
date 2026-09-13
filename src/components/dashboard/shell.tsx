@@ -23,26 +23,27 @@ import {
 import { useState } from 'react';
 import { BrandLogo } from '@/components/brand-logo';
 import { cn, getInitials } from '@/lib/utils';
+import { demoModeEnabled } from '@/lib/demo-store';
 import { useDashboard } from '@/components/providers/dashboard-provider';
 
 const items = [
-  { href: '/dashboard', label: 'Visao Geral', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Visão geral', icon: LayoutDashboard },
   { href: '/dashboard/leads', label: 'Leads', icon: Users },
   { href: '/dashboard/projetos', label: 'Projetos', icon: FolderKanban },
   { href: '/dashboard/tarefas', label: 'Tarefas', icon: SquareCheckBig },
   { href: '/dashboard/financeiro', label: 'Financeiro', icon: WalletCards },
-  { href: '/dashboard/concluidos', label: 'Projetos Concluidos', icon: BriefcaseBusiness },
-  { href: '/dashboard/configuracoes', label: 'Configuracoes', icon: Settings },
+  { href: '/dashboard/concluidos', label: 'Projetos concluídos', icon: BriefcaseBusiness },
+  { href: '/dashboard/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
 const titles: Record<string, string> = {
-  '/dashboard': 'Visao Geral',
+  '/dashboard': 'Visão geral',
   '/dashboard/leads': 'Leads',
   '/dashboard/projetos': 'Projetos',
   '/dashboard/tarefas': 'Tarefas',
   '/dashboard/financeiro': 'Financeiro',
-  '/dashboard/concluidos': 'Projetos Concluidos',
-  '/dashboard/configuracoes': 'Configuracoes',
+  '/dashboard/concluidos': 'Projetos concluídos',
+  '/dashboard/configuracoes': 'Configurações',
 };
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -63,7 +64,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {!collapsed ? (
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[var(--text)]">VexCoding</p>
-              <p className="truncate text-xs muted">Area dos socios</p>
+              <p className="truncate text-xs muted">Área dos sócios</p>
             </div>
           ) : null}
         </div>
@@ -211,18 +212,20 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 >
                   {theme === 'dark' ? <SunMedium size={18} /> : <Moon size={18} />}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => void setMode(mode === 'demo' ? 'official' : 'demo')}
-                  className={cn(
-                    'h-10 border px-3 text-sm font-medium',
-                    mode === 'demo'
-                      ? 'border-yellow-400 bg-yellow-100 text-yellow-950'
-                      : 'border-[var(--line)] bg-[var(--panel)] text-[var(--text)]',
-                  )}
-                >
-                  {mode === 'demo' ? 'MODO DEMO' : 'MODO OFICIAL'}
-                </button>
+                {demoModeEnabled ? (
+                  <button
+                    type="button"
+                    onClick={() => void setMode(mode === 'demo' ? 'official' : 'demo')}
+                    className={cn(
+                      'h-10 border px-3 text-sm font-medium',
+                      mode === 'demo'
+                        ? 'border-yellow-400 bg-yellow-100 text-yellow-950'
+                        : 'border-[var(--line)] bg-[var(--panel)] text-[var(--text)]',
+                    )}
+                  >
+                    {mode === 'demo' ? 'MODO DEMO' : 'MODO OFICIAL'}
+                  </button>
+                ) : null}
                 <div className="hidden items-center gap-3 border border-[var(--line)] bg-[var(--panel)] px-3 py-2 md:flex">
                   <div
                     className="flex h-8 w-8 items-center justify-center text-xs font-semibold text-white"

@@ -49,8 +49,8 @@ export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }
         <div className="panel">
           <div className="border-b border-[var(--line)] px-6 py-8 text-center">
             <BrandLogo centered />
-            <h1 className="mt-5 text-2xl font-semibold text-[var(--text)]">Area dos socios</h1>
-            <p className="mt-2 text-sm muted">Entre no painel interno para acompanhar operacao, projetos e financeiro.</p>
+            <h1 className="mt-5 text-2xl font-semibold text-[var(--text)]">Área dos sócios</h1>
+            <p className="mt-2 text-sm muted">Entre no painel interno para acompanhar operação, projetos e financeiro.</p>
           </div>
 
           <form
@@ -69,24 +69,24 @@ export function LoginView({ redirectTo = '/dashboard' }: { redirectTo?: string }
                 const responseMessage = await readResponseMessage(response);
 
                 if (!response.ok) {
-                  throw new Error(responseMessage || 'Nao foi possivel entrar.');
+                  throw new Error(responseMessage || 'Não foi possível entrar.');
                 }
 
                 window.location.assign(redirectTo || '/dashboard');
               } catch (loginError) {
-                setMessage(loginError instanceof Error ? loginError.message : 'Nao foi possivel entrar.');
+                setMessage(loginError instanceof Error ? loginError.message : 'Não foi possível entrar.');
               } finally {
                 setLoading(false);
               }
             }}
           >
             <label className="space-y-2">
-              <span className="text-sm font-medium text-[var(--text)]">Usuario</span>
+              <span className="text-sm font-medium text-[var(--text)]">Usuário</span>
               <input
                 className="field"
                 value={form.username}
                 onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
-                placeholder="Seu usuario"
+                placeholder="Seu usuário"
               />
             </label>
             <label className="space-y-2">

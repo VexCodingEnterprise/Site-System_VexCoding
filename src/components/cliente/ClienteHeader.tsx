@@ -23,7 +23,7 @@ export function ClienteHeader({
         </Link>
 
         <div className="flex items-center gap-3">
-          <p className="hidden text-sm muted md:block">Ola, {clientName}</p>
+          <p className="hidden text-sm muted md:block">Olá, {clientName}</p>
           <button
             type="button"
             onClick={() => void onLogout()}

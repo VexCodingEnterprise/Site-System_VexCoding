@@ -77,13 +77,13 @@ export function OverviewView() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
         {[
-          { label: 'Leads novos', value: newLeads.length, helper: 'Aguardando qualificacao' },
-          { label: 'Projetos ativos', value: activeProjects.length, helper: 'Briefing, execucao ou aprovacao' },
+          { label: 'Leads novos', value: newLeads.length, helper: 'Aguardando qualificação' },
+          { label: 'Projetos ativos', value: activeProjects.length, helper: 'Briefing, execução ou aprovação' },
           { label: 'Tarefas abertas', value: openTasks.length, helper: 'Backlog, andamento ou bloqueadas' },
           {
             label: 'Lucro atual',
             value: formatCurrency(currentMonthRevenue),
-            helper: `Divisao por socio: ${formatCurrency(splitPerPartner)}`,
+            helper: `Divisão por sócio: ${formatCurrency(splitPerPartner)}`,
           },
         ].map((card) => (
           <Panel key={card.label} className="px-4 py-4">
@@ -96,7 +96,7 @@ export function OverviewView() {
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <Panel>
-          <SectionTitle title="Receita mensal" description="Ultimos 6 meses" />
+          <SectionTitle title="Receita mensal" description="Últimos 6 meses" />
           <div className="h-[280px] p-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyRevenue}>
@@ -126,7 +126,7 @@ export function OverviewView() {
         </Panel>
 
         <Panel>
-          <SectionTitle title="Tarefas por socio" description="Distribuicao atual" />
+          <SectionTitle title="Tarefas por sócio" description="Distribuição atual" />
           <div className="h-[280px] p-4">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -146,7 +146,7 @@ export function OverviewView() {
         <Panel>
           <SectionTitle
             title="Leads recentes"
-            description="Ultimos 5 contatos"
+            description="Últimos 5 contatos"
             action={
               <Link href="/dashboard/leads" className="inline-flex items-center gap-2 text-sm font-medium text-[var(--text)]">
                 Ir para leads <ArrowRight size={16} />
@@ -175,7 +175,7 @@ export function OverviewView() {
             description="Kanban resumido"
             action={
               <Link href="/dashboard/tarefas" className="inline-flex items-center gap-2 text-sm font-medium text-[var(--text)]">
-                Ver execucao <ArrowRight size={16} />
+                Ver execução <ArrowRight size={16} />
               </Link>
             }
           />

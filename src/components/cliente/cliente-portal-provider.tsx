@@ -2,13 +2,6 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  clearDemoClientSession,
-  getDemoClientSnapshot,
-  requestDemoClientChecklistReopen,
-  saveDemoClientChecklist,
-  sendDemoClientMessage,
-} from '@/lib/client-portal-demo';
 import { getBrowserSupabase, hasBrowserSupabaseConfig } from '@/lib/supabase';
 import type {
   ChecklistResponseValue,
@@ -47,7 +40,7 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
 
   const resolveSupabase = useCallback(() => {
     if (!hasBrowserSupabaseConfig) {
-      throw new Error('Area do cliente ainda nao esta conectada ao Supabase.');
+      throw new Error('A área do cliente ainda não está conectada ao Supabase.');
     }
 
     return getBrowserSupabase();
@@ -65,16 +58,7 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
 
     try {
       if (!hasBrowserSupabaseConfig) {
-        const demoSnapshot = getDemoClientSnapshot();
-
-        if (!demoSnapshot) {
-          setSnapshot(null);
-          router.replace('/cliente');
-          return;
-        }
-
-        setSnapshot(demoSnapshot);
-        return;
+        throw new Error('O portal do cliente está temporariamente indisponível.');
       }
 
       const token = await getAccessToken();
@@ -95,13 +79,13 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
       const payload = (await response.json()) as { snapshot?: ClientPortalSnapshot; message?: string };
 
       if (!response.ok || !payload.snapshot) {
-        throw new Error(payload.message || 'Nao foi possivel carregar o portal do cliente.');
+        throw new Error(payload.message || 'Não foi possível carregar o portal do cliente.');
       }
 
       setSnapshot(payload.snapshot);
     } catch (loadError) {
       setSnapshot(null);
-      setError(loadError instanceof Error ? loadError.message : 'Nao foi possivel carregar o portal do cliente.');
+      setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar o portal do cliente.');
     } finally {
       setLoading(false);
     }
@@ -123,7 +107,7 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
           }
         }).data.subscription;
       } catch (supabaseError) {
-        setError(supabaseError instanceof Error ? supabaseError.message : 'Nao foi possivel iniciar o portal do cliente.');
+        setError(supabaseError instanceof Error ? supabaseError.message : 'Não foi possível iniciar o portal do cliente.');
         setLoading(false);
       }
     }
@@ -188,7 +172,6 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     if (!hasBrowserSupabaseConfig) {
-      clearDemoClientSession();
       setSnapshot(null);
       router.replace('/cliente');
       return;
@@ -209,33 +192,31 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
     setError('');
     try {
       if (!hasBrowserSupabaseConfig) {
-        const nextSnapshot = sendDemoClientMessage(text);
-
-        if (!nextSnapshot) {
-          throw new Error('Sessao expirada. Entre novamente para continuar.');
-        }
-
-        setSnapshot(nextSnapshot);
-        return;
+        throw new Error('O portal do cliente está temporariamente indisponível.');
       }
 
-      const supabase = resolveSupabase();
-      const { error: insertError } = await supabase.from('mensagens_projeto').insert({
-        projeto_id: snapshot.project.id,
-        remetente_tipo: 'cliente',
-        remetente_nome: snapshot.client.name,
-        texto: text,
-      } as never);
-
-      if (insertError) {
-        throw new Error(insertError.message);
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error('Sessão expirada. Entre novamente para continuar.');
       }
+
+      const response = await fetch('/api/client-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action: 'message-create', text }),
+      });
+      const payload = (await response.json()) as { snapshot?: ClientPortalSnapshot; message?: string };
+      if (!response.ok || !payload.snapshot) {
+        throw new Error(payload.message || 'Não foi possível enviar a mensagem.');
+      }
+
+      setSnapshot(payload.snapshot);
     } catch (messageError) {
-      setError(messageError instanceof Error ? messageError.message : 'Nao foi possivel enviar a mensagem.');
+      setError(messageError instanceof Error ? messageError.message : 'Não foi possível enviar a mensagem.');
     } finally {
       setSending(false);
     }
-  }, [resolveSupabase, snapshot]);
+  }, [getAccessToken, snapshot]);
 
   const saveChecklist = useCallback(async (
     responses: Array<{ itemId: string; value: ChecklistResponseValue }>,
@@ -250,19 +231,12 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
 
     try {
       if (!hasBrowserSupabaseConfig) {
-        const nextSnapshot = saveDemoClientChecklist(responses, checklistPatch);
-
-        if (!nextSnapshot) {
-          throw new Error('Sessao expirada. Entre novamente para continuar.');
-        }
-
-        setSnapshot(nextSnapshot);
-        return;
+        throw new Error('O portal do cliente está temporariamente indisponível.');
       }
 
       const token = await getAccessToken();
       if (!token) {
-        throw new Error('Sessao expirada. Entre novamente para continuar.');
+        throw new Error('Sessão expirada. Entre novamente para continuar.');
       }
 
       const response = await fetch('/api/client-portal', {
@@ -282,12 +256,12 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
       const payload = (await response.json()) as { snapshot?: ClientPortalSnapshot; message?: string };
 
       if (!response.ok || !payload.snapshot) {
-        throw new Error(payload.message || 'Nao foi possivel salvar o checklist.');
+        throw new Error(payload.message || 'Não foi possível salvar o checklist.');
       }
 
       setSnapshot(payload.snapshot);
     } catch (checklistError) {
-      setError(checklistError instanceof Error ? checklistError.message : 'Nao foi possivel salvar o checklist.');
+      setError(checklistError instanceof Error ? checklistError.message : 'Não foi possível salvar o checklist.');
     } finally {
       setChecklistSaving(false);
     }
@@ -301,7 +275,7 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
     const token = await getAccessToken();
 
     if (!token) {
-      throw new Error('Sessao expirada. Entre novamente para continuar.');
+      throw new Error('Sessão expirada. Entre novamente para continuar.');
     }
 
     const formData = new FormData();
@@ -324,7 +298,7 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
     };
 
     if (!response.ok || !payload.fileUrl) {
-      throw new Error(payload.message || 'Nao foi possivel enviar o arquivo.');
+      throw new Error(payload.message || 'Não foi possível enviar o arquivo.');
     }
 
     return {
@@ -340,19 +314,12 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
 
     try {
       if (!hasBrowserSupabaseConfig) {
-        const nextSnapshot = requestDemoClientChecklistReopen(checklistId);
-
-        if (!nextSnapshot) {
-          throw new Error('Sessao expirada. Entre novamente para continuar.');
-        }
-
-        setSnapshot(nextSnapshot);
-        return;
+        throw new Error('O portal do cliente está temporariamente indisponível.');
       }
 
       const token = await getAccessToken();
       if (!token) {
-        throw new Error('Sessao expirada. Entre novamente para continuar.');
+      throw new Error('Sessão expirada. Entre novamente para continuar.');
       }
 
       const response = await fetch('/api/client-portal', {
@@ -370,10 +337,10 @@ export function ClientePortalProvider({ children }: { children: ReactNode }) {
       const payload = (await response.json()) as { message?: string };
 
       if (!response.ok) {
-        throw new Error(payload.message || 'Nao foi possivel solicitar a reabertura.');
+        throw new Error(payload.message || 'Não foi possível solicitar a reabertura.');
       }
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Nao foi possivel solicitar a reabertura.');
+      setError(requestError instanceof Error ? requestError.message : 'Não foi possível solicitar a reabertura.');
     } finally {
       setChecklistSaving(false);
     }

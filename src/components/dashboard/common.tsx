@@ -36,6 +36,16 @@ export function SectionTitle({
 }
 
 export function StatusPill({ value }: { value: string }) {
+  const labels: Record<string, string> = {
+    Execucao: 'Execução',
+    'Em aprovacao': 'Em aprovação',
+    Concluido: 'Concluído',
+    Media: 'Média',
+    'Nao enviado': 'Não enviado',
+    'Nao criado': 'Não criado',
+    em_andamento: 'Em andamento',
+    concluida: 'Concluída',
+  };
   const palette: Record<string, string> = {
     Novo: 'bg-yellow-100 text-yellow-900 border-yellow-300',
     Qualificado: 'bg-blue-100 text-blue-900 border-blue-300',
@@ -69,7 +79,7 @@ export function StatusPill({ value }: { value: string }) {
 
   return (
     <span className={cn('inline-flex items-center border px-2 py-1 text-xs font-medium', palette[value] || 'bg-slate-100 text-slate-900 border-slate-300')}>
-      {value}
+      {labels[value] || value}
     </span>
   );
 }

@@ -11,6 +11,7 @@ import {
 import { createDemoWorkspace, fixedPartners } from '@/data/demo';
 import {
   getDemoWorkspace,
+  demoModeEnabled,
   getStoredMode,
   resetDemoWorkspace,
   saveDemoWorkspace,
@@ -40,7 +41,6 @@ import type {
   StageTemplate,
   Task,
   WorkspaceData,
-  WorkspaceSettings,
 } from '@/types/dashboard';
 
 type ProjectDraft = Omit<Project, 'id' | 'createdAt' | 'concludedAt' | 'testimonial' | 'useAsCase'>;
@@ -101,7 +101,6 @@ interface DashboardContextValue {
   updateProjectCase: (projectId: string, testimonial: string, useAsCase: boolean) => Promise<void>;
   updatePreferences: (patch: Partial<Pick<Partner, 'notificationsEmail' | 'notificationsBrowser' | 'themePreference'>>) => Promise<void>;
   changePassword: (nextPassword: string) => Promise<void>;
-  saveSettings: (settings: WorkspaceSettings) => Promise<void>;
 }
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -111,7 +110,7 @@ const api = {
     const response = await fetch('/api/workspace', { cache: 'no-store' });
     const payload = (await response.json()) as { workspace?: WorkspaceData; message?: string };
     if (!response.ok || !payload.workspace) {
-      throw new Error(payload.message || 'Nao foi possivel carregar o modo oficial.');
+      throw new Error(payload.message || 'Não foi possível carregar o modo oficial.');
     }
     return payload.workspace;
   },
@@ -124,7 +123,7 @@ const api = {
 
     const payload = (await response.json()) as { ok?: boolean; message?: string; result?: any };
     if (!response.ok) {
-      throw new Error(payload.message || 'Nao foi possivel executar a acao oficial.');
+      throw new Error(payload.message || 'Não foi possível executar a ação oficial.');
     }
     return payload;
   },
@@ -146,7 +145,7 @@ const api = {
     };
 
     if (!response.ok || !payload.fileUrl) {
-      throw new Error(payload.message || 'Nao foi possivel enviar o documento.');
+      throw new Error(payload.message || 'Não foi possível enviar o documento.');
     }
 
     return {
@@ -173,7 +172,7 @@ const api = {
     };
 
     if (!response.ok || !payload.fileUrl) {
-      throw new Error(payload.message || 'Nao foi possivel enviar o documento do cliente.');
+      throw new Error(payload.message || 'Não foi possível enviar o documento do cliente.');
     }
 
     return {
@@ -191,7 +190,7 @@ export function DashboardProvider({
   children: ReactNode;
   session: DashboardSession;
 }) {
-  const [mode, setModeState] = useState<AppMode>('demo');
+  const [mode, setModeState] = useState<AppMode>('official');
   const [workspace, setWorkspace] = useState<WorkspaceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -207,7 +206,7 @@ export function DashboardProvider({
       setWorkspace(data);
       return true;
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Nao foi possivel carregar os dados.');
+      setError(loadError instanceof Error ? loadError.message : 'Não foi possível carregar os dados.');
       if (nextMode === 'official' && options?.allowFallbackToDemo) {
         setModeState('demo');
         setStoredMode('demo');
@@ -222,7 +221,7 @@ export function DashboardProvider({
   useEffect(() => {
     const storedMode = getStoredMode();
     setModeState(storedMode);
-    void loadWorkspace(storedMode, { allowFallbackToDemo: true });
+    void loadWorkspace(storedMode);
   }, [loadWorkspace]);
 
   const persistDemoWorkspace = (updater: (current: WorkspaceData) => WorkspaceData) => {
@@ -242,7 +241,7 @@ export function DashboardProvider({
       await handler();
       setNotice(successMessage);
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : 'Nao foi possivel executar a acao.');
+      setError(actionError instanceof Error ? actionError.message : 'Não foi possível executar a ação.');
     } finally {
       setActionLoading(false);
     }
@@ -257,6 +256,11 @@ export function DashboardProvider({
     clearFeedback();
 
     if (nextMode === mode) {
+      return;
+    }
+
+    if (nextMode === 'demo' && !demoModeEnabled) {
+      setError('O modo demo está desativado neste ambiente.');
       return;
     }
 
@@ -886,7 +890,7 @@ export function DashboardProvider({
           project.id === projectId ? { ...project, testimonial, useAsCase } : project,
         ),
       }));
-    }, 'Projeto concluido atualizado.');
+    }, 'Projeto concluído atualizado.');
   };
 
   const updatePreferences = async (
@@ -911,23 +915,11 @@ export function DashboardProvider({
   const changePassword = async (nextPassword: string) => {
     await runAction(async () => {
       if (mode === 'demo') {
-        throw new Error('No modo demo a senha permanece fixa em 123456.');
+        throw new Error('A troca de senha do modo demo não está disponível.');
       }
 
       await api.postOfficial({ scope: 'password', nextPassword });
     }, 'Senha atualizada com sucesso.');
-  };
-
-  const saveSettings = async (settings: WorkspaceSettings) => {
-    await runAction(async () => {
-      if (mode === 'official') {
-        await api.postOfficial({ scope: 'settings', settings });
-        await loadWorkspace('official');
-        return;
-      }
-
-      persistDemoWorkspace((current) => ({ ...current, settings }));
-    }, 'Configuracoes salvas.');
   };
 
   const value: DashboardContextValue = {
@@ -971,7 +963,6 @@ export function DashboardProvider({
     updateProjectCase,
     updatePreferences,
     changePassword,
-    saveSettings,
   };
 
   return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;

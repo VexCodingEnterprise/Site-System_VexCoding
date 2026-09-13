@@ -11,7 +11,7 @@ export function CampoSimNao({
     <div className="grid grid-cols-2 gap-3">
       {[
         { label: 'Sim', nextValue: true },
-        { label: 'Nao', nextValue: false },
+        { label: 'Não', nextValue: false },
       ].map((option) => (
         <button
           key={option.label}

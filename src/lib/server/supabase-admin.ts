@@ -9,12 +9,12 @@ let supabaseAdmin: UntypedSupabaseClient | null = null;
 
 export const assertOfficialMode = (): UntypedSupabaseClient => {
   if (!hasOfficialSupabase()) {
-    throw new Error(officialSupabaseConfigError() || 'Supabase oficial nao configurado.');
+    throw new Error(officialSupabaseConfigError() || 'Supabase oficial não configurado.');
   }
 
   if (!supabaseAdmin) {
     const serverEnv = getServerEnv();
-    supabaseAdmin = createClient<any>(serverEnv.supabaseUrl, serverEnv.supabaseServiceRoleKey, {
+    supabaseAdmin = createClient<any>(serverEnv.supabaseUrl, serverEnv.supabaseSecretKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,

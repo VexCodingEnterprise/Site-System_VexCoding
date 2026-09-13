@@ -25,7 +25,7 @@ export function CompletedView() {
               <p className="mt-2 text-sm font-medium">{formatCurrency(project.valueTotal)}</p>
             </div>
             <div className="bg-[var(--panel)] px-4 py-4">
-              <p className="text-xs uppercase tracking-[0.16em] muted">Concluido em</p>
+              <p className="text-xs uppercase tracking-[0.16em] muted">Concluído em</p>
               <p className="mt-2 text-sm font-medium">{formatDate(project.concludedAt)}</p>
             </div>
           </div>

@@ -1,53 +1,25 @@
 import { NextResponse } from 'next/server';
-import { getDefaultPartner, setSessionCookie, verifyPassword } from '@/lib/server/auth';
-import { hasOfficialSupabase } from '@/lib/server/config';
-import { verifyOfficialPartner } from '@/lib/server/workspace-db';
+import { signInPartner } from '@/lib/server/auth';
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as { username?: string; password?: string };
     const username = body.username?.trim().toLowerCase();
-    const password = body.password?.trim();
+    const password = body.password || '';
 
     if (!username || !password) {
-      return NextResponse.json({ message: 'Usuario e senha sao obrigatorios.' }, { status: 400 });
+      return NextResponse.json({ message: 'Usuário e senha são obrigatórios.' }, { status: 400 });
     }
 
-    let partner = null;
-
-    if (hasOfficialSupabase()) {
-      try {
-        partner = await verifyOfficialPartner(username, password);
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          (
-            error.message.includes('Supabase oficial nao configurado') ||
-            error.message.includes('supabase/schema.sql') ||
-            error.message.includes('schema cache') ||
-            error.message.includes('Bucket')
-          )
-        ) {
-          throw error;
-        }
-
-        partner = null;
-      }
-    }
+    const partner = await signInPartner(username, password);
 
     if (!partner) {
-      const fallbackPartner = getDefaultPartner(username);
-      if (!fallbackPartner || !verifyPassword(fallbackPartner, password)) {
-        return NextResponse.json({ message: 'Credenciais invalidas.' }, { status: 401 });
-      }
-      partner = fallbackPartner;
+      return NextResponse.json({ message: 'Credenciais inválidas.' }, { status: 401 });
     }
-
-    setSessionCookie(partner);
 
     return NextResponse.json({
       session: {
-        partnerId: partner.id,
+        partnerId: partner.partnerId,
         username: partner.username,
         displayName: partner.displayName,
         role: partner.role,
@@ -55,9 +27,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Nao foi possivel concluir o login.' },
-      { status: 500 },
-    );
+    console.error('partner_login_failed', error instanceof Error ? error.message : 'unknown_error');
+    return NextResponse.json({ message: 'Não foi possível concluir o login.' }, { status: 500 });
   }
 }

@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { BrandLogo } from '@/components/brand-logo';
-import { demoClientPassword, signInDemoClient } from '@/lib/client-portal-demo';
 import { getBrowserSupabase, hasBrowserSupabaseConfig } from '@/lib/supabase';
 
 export function ClienteLoginPage() {
@@ -45,51 +44,38 @@ export function ClienteLoginPage() {
 
               try {
                 if (!hasBrowserSupabaseConfig) {
-                  signInDemoClient(form.identifier, form.password);
-                  window.location.assign('/cliente/dashboard');
-                  return;
-                }
-
-                const resolveResponse = await fetch('/api/client-auth/resolve', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ identifier: form.identifier }),
-                });
-                const resolvePayload = (await resolveResponse.json()) as { email?: string; message?: string };
-
-                if (!resolveResponse.ok || !resolvePayload.email) {
-                  throw new Error(resolvePayload.message || 'Nao foi possivel localizar o acesso do cliente.');
+                  throw new Error('O portal do cliente está temporariamente indisponível.');
                 }
 
                 const supabase = getBrowserSupabase();
                 const { data, error } = await supabase.auth.signInWithPassword({
-                  email: resolvePayload.email,
+                  email: form.identifier.trim().toLowerCase(),
                   password: form.password,
                 });
 
                 if (error) {
-                  throw new Error(error.message);
+                  throw new Error('E-mail ou senha inválidos.');
                 }
 
                 if (!data.session) {
-                  throw new Error('Nao foi possivel iniciar a sessao do cliente.');
+                  throw new Error('Não foi possível iniciar a sessão do cliente.');
                 }
 
-                window.location.assign('/cliente/dashboard');
+                router.push('/cliente/dashboard');
               } catch (loginError) {
-                setMessage(loginError instanceof Error ? loginError.message : 'Nao foi possivel entrar.');
+                setMessage(loginError instanceof Error ? loginError.message : 'Não foi possível entrar.');
               } finally {
                 setLoading(false);
               }
             }}
           >
             <label className="space-y-2">
-              <span className="text-sm font-medium text-[var(--text)]">E-mail ou nome</span>
+              <span className="text-sm font-medium text-[var(--text)]">E-mail</span>
               <input
                 className="field"
                 value={form.identifier}
                 onChange={(event) => setForm((current) => ({ ...current, identifier: event.target.value }))}
-                placeholder="cliente@empresa.com ou nome do cliente"
+                placeholder="cliente@empresa.com"
               />
             </label>
             <label className="space-y-2">
@@ -115,7 +101,7 @@ export function ClienteLoginPage() {
 
             {!hasBrowserSupabaseConfig ? (
               <div className="border border-[var(--line)] bg-[var(--panel)] px-4 py-3 text-sm muted">
-                Use o e-mail ou o nome do cliente cadastrado e a senha definida. Se nao houver uma senha personalizada no demo, use `{demoClientPassword}`.
+                O portal aguarda a configuração do Supabase Auth.
               </div>
             ) : null}
 

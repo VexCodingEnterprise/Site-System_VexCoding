@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { randomInt } from 'node:crypto';
 import type {
   Branch,
   ChecklistResponseValue,
@@ -24,12 +25,11 @@ import type {
   StageTemplateStep,
   Task,
   WorkspaceData,
-  WorkspaceSettings,
 } from '@/types/dashboard';
 import { publicEnv } from '@/lib/config';
 import { createId, sanitizeFileName } from '@/lib/utils';
-import { getPasswordHashCandidates, hashPassword } from '@/lib/server/auth';
 import { assertOfficialMode } from '@/lib/server/supabase-admin';
+import { isValidUpload } from '@/lib/server/validation';
 
 const TABLES = {
   partners: 'partners',
@@ -49,33 +49,7 @@ const TABLES = {
   projectChecklists: 'checklists_projeto',
   checklistResponses: 'checklist_respostas',
   stageTemplates: 'etapas_templates',
-  settings: 'workspace_settings',
 };
-
-const defaultOfficialPartners = [
-  {
-    username: 'rafael',
-    display_name: 'Rafael Nogueira',
-    role: 'Socio de produto',
-    email: 'rafael@vexcoding.com',
-    avatar_color: '#0A0A0A',
-    password_hash: hashPassword('rafael', '123456'),
-    notifications_email: true,
-    notifications_browser: true,
-    theme_preference: 'dark',
-  },
-  {
-    username: 'lourenzo',
-    display_name: 'Lourenzo Martins',
-    role: 'Socio de operacoes',
-    email: 'lourenzo@vexcoding.com',
-    avatar_color: '#444444',
-    password_hash: hashPassword('lourenzo', '123456'),
-    notifications_email: true,
-    notifications_browser: true,
-    theme_preference: 'light',
-  },
-] as const;
 
 type ClientRow = {
   id: string;
@@ -114,11 +88,11 @@ const getOfficialDatabaseErrorMessage = (error: SupabaseLikeError | null | undef
     rawMessage.includes('relation') ||
     rawMessage.includes("Could not find the table 'public.partners'")
   ) {
-    return 'As tabelas do Supabase oficial ainda nao existem nesse projeto. Rode o arquivo supabase/schema.sql no SQL Editor do projeto conectado e tente novamente.';
+      return 'As tabelas do Supabase oficial ainda não existem nesse projeto. Aplique o bootstrap e as migrations no projeto conectado e tente novamente.';
   }
 
   if (rawMessage.includes('Bucket not found')) {
-    return `O bucket ${publicEnv.projectDocumentsBucket} ainda nao existe no Supabase Storage.`;
+    return `O bucket ${publicEnv.projectDocumentsBucket} ainda não existe no Supabase Storage.`;
   }
 
   return rawMessage;
@@ -139,6 +113,7 @@ const mapLead = (row: Record<string, unknown>): Lead => ({
   id: String(row.id),
   name: String(row.nome),
   email: String(row.email),
+  company: String(row.empresa || ''),
   projectType: String(row.tipo_projeto),
   message: String(row.mensagem),
   status: row.status as Lead['status'],
@@ -154,7 +129,6 @@ const mapPartner = (row: Record<string, unknown>): Partner => ({
   role: String(row.role),
   email: String(row.email),
   avatarColor: String(row.avatar_color || '#0A0A0A'),
-  passwordHash: String(row.password_hash),
   notificationsEmail: Boolean(row.notifications_email),
   notificationsBrowser: Boolean(row.notifications_browser),
   themePreference: (row.theme_preference as Partner['themePreference']) || 'system',
@@ -225,11 +199,6 @@ const mapDocument = (row: Record<string, unknown>): ProjectDocument => ({
   fileUrl: String(row.file_url || ''),
   filePath: (row.file_path as string | null) || null,
   uploadedAt: String(row.criado_em),
-});
-
-const mapSettings = (row?: Record<string, unknown> | null): WorkspaceSettings => ({
-  resendEnabled: Boolean(row?.resend_enabled),
-  resendFromEmail: String(row?.resend_from_email || 'contato@vexcoding.com'),
 });
 
 const mapClient = (row: Record<string, unknown>): ClientAccount => ({
@@ -427,7 +396,6 @@ export const getOfficialWorkspace = async (): Promise<WorkspaceData> => {
     projectChecklistsRes,
     checklistResponsesRes,
     stageTemplatesRes,
-    settingsRes,
   ] =
     await Promise.all([
       supabase.from(TABLES.partners).select('*').order('display_name', { ascending: true }),
@@ -447,7 +415,6 @@ export const getOfficialWorkspace = async (): Promise<WorkspaceData> => {
       supabase.from(TABLES.projectChecklists).select('*').order('criado_em', { ascending: false }),
       supabase.from(TABLES.checklistResponses).select('*').order('atualizado_em', { ascending: false }),
       supabase.from(TABLES.stageTemplates).select('*').order('criado_em', { ascending: false }),
-      supabase.from(TABLES.settings).select('*').limit(1).maybeSingle(),
     ]);
 
   if (
@@ -467,8 +434,7 @@ export const getOfficialWorkspace = async (): Promise<WorkspaceData> => {
     checklistTemplatesRes.error ||
     projectChecklistsRes.error ||
     checklistResponsesRes.error ||
-    stageTemplatesRes.error ||
-    settingsRes.error
+    stageTemplatesRes.error
   ) {
     throwOfficialDatabaseError(
       partnersRes.error ||
@@ -487,9 +453,8 @@ export const getOfficialWorkspace = async (): Promise<WorkspaceData> => {
         checklistTemplatesRes.error ||
         projectChecklistsRes.error ||
         checklistResponsesRes.error ||
-        stageTemplatesRes.error ||
-        settingsRes.error,
-      'Nao foi possivel carregar o workspace oficial.',
+        stageTemplatesRes.error,
+      'Não foi possível carregar o workspace oficial.',
     );
   }
 
@@ -511,87 +476,7 @@ export const getOfficialWorkspace = async (): Promise<WorkspaceData> => {
     projectChecklists: (projectChecklistsRes.data || []).map((row) => mapProjectChecklist(row)),
     checklistResponses: orderByDateDesc((checklistResponsesRes.data || []).map((row) => mapChecklistResponse(row))),
     stageTemplates: (stageTemplatesRes.data || []).map((row) => mapStageTemplate(row)),
-    settings: mapSettings(settingsRes.data),
   };
-};
-
-export const verifyOfficialPartner = async (username: string, password: string) => {
-  const supabase = assertOfficialMode();
-  const { data: existingPartners, error: existingPartnersError } = await supabase
-    .from(TABLES.partners)
-    .select('username')
-    .in(
-      'username',
-      defaultOfficialPartners.map((partner) => partner.username),
-    );
-
-  if (existingPartnersError) {
-    throwOfficialDatabaseError(existingPartnersError, 'Nao foi possivel verificar os socios oficiais.');
-  }
-
-  const existingUsernames = new Set((existingPartners || []).map((partner) => String(partner.username)));
-  const missingPartners = defaultOfficialPartners.filter((partner) => !existingUsernames.has(partner.username));
-
-  if (missingPartners.length) {
-    const { error: seedError } = await supabase.from(TABLES.partners).insert(missingPartners);
-
-    if (seedError) {
-      throwOfficialDatabaseError(seedError, 'Nao foi possivel preparar os socios padrao no Supabase.');
-    }
-  }
-
-  const { data, error } = await supabase
-    .from(TABLES.partners)
-    .select('*')
-    .eq('username', username.toLowerCase())
-    .maybeSingle();
-
-  if (error) {
-    throwOfficialDatabaseError(error, 'Nao foi possivel consultar os socios oficiais.');
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  const partner = mapPartner(data);
-  const currentHash = hashPassword(username, password);
-  const passwordMatches = getPasswordHashCandidates(username, password).includes(partner.passwordHash);
-
-  if (!passwordMatches) {
-    return null;
-  }
-
-  if (partner.passwordHash !== currentHash) {
-    const { error: updatePasswordError } = await supabase
-      .from(TABLES.partners)
-      .update({ password_hash: currentHash })
-      .eq('username', username.toLowerCase());
-
-    if (updatePasswordError) {
-      throwOfficialDatabaseError(updatePasswordError, 'Nao foi possivel atualizar a senha do socio oficial.');
-    }
-
-    partner.passwordHash = currentHash;
-  }
-
-  return partner;
-};
-
-export const saveWorkspaceSettingsOfficial = async (settings: WorkspaceSettings) => {
-  const supabase = assertOfficialMode();
-  const { error } = await supabase.from(TABLES.settings).upsert(
-    {
-      id: 'workspace-settings',
-      resend_enabled: settings.resendEnabled,
-      resend_from_email: settings.resendFromEmail,
-    },
-    { onConflict: 'id' },
-  );
-
-  if (error) {
-    throw new Error(error.message);
-  }
 };
 
 export const updateOfficialPartnerPreferences = async (
@@ -613,23 +498,24 @@ export const updateOfficialPartnerPreferences = async (
   }
 };
 
-export const updateOfficialPartnerPassword = async (username: string, password: string) => {
-  const supabase = assertOfficialMode();
-  const { error } = await supabase
-    .from(TABLES.partners)
-    .update({ password_hash: hashPassword(username, password) })
-    .eq('username', username);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-};
-
 export const uploadOfficialDocumentFile = async (projectId: string, file: File) => {
   const supabase = assertOfficialMode();
+  if (!isValidUpload(file)) {
+    throw new Error('Arquivo inválido. Use PDF, imagem, texto ou ZIP de até 10 MB.');
+  }
+
+  const { data: project, error: projectError } = await supabase
+    .from(TABLES.projects)
+    .select('id')
+    .eq('id', projectId)
+    .maybeSingle();
+  if (projectError || !project) {
+    throw new Error('Projeto não encontrado.');
+  }
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const safeName = sanitizeFileName(file.name || 'documento');
-  const filePath = `${projectId}/${timestamp}-${safeName}`;
+  const filePath = `projects/${projectId}/${timestamp}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabase.storage.from(publicEnv.projectDocumentsBucket).upload(filePath, buffer, {
@@ -649,14 +535,27 @@ export const uploadOfficialDocumentFile = async (projectId: string, file: File) 
 
 const generateTemporaryPassword = () => {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
-  return Array.from({ length: 12 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join('');
+  return Array.from({ length: 16 }, () => alphabet[randomInt(alphabet.length)]).join('');
 };
 
 export const uploadOfficialClientDocumentFile = async (projectId: string, file: File) => {
   const supabase = assertOfficialMode();
+  if (!isValidUpload(file)) {
+    throw new Error('Arquivo inválido. Use PDF, imagem, texto ou ZIP de até 10 MB.');
+  }
+
+  const { data: project, error: projectError } = await supabase
+    .from(TABLES.projects)
+    .select('id')
+    .eq('id', projectId)
+    .maybeSingle();
+  if (projectError || !project) {
+    throw new Error('Projeto não encontrado.');
+  }
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const safeName = sanitizeFileName(file.name || 'documento-cliente');
-  const filePath = `client-portal/${projectId}/${timestamp}-${safeName}`;
+  const filePath = `projects/${projectId}/client/${timestamp}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabase.storage.from(publicEnv.projectDocumentsBucket).upload(filePath, buffer, {
@@ -676,9 +575,22 @@ export const uploadOfficialClientDocumentFile = async (projectId: string, file: 
 
 export const uploadOfficialChecklistFile = async (projectId: string, file: File) => {
   const supabase = assertOfficialMode();
+  if (!isValidUpload(file)) {
+    throw new Error('Arquivo inválido. Use PDF, imagem, texto ou ZIP de até 10 MB.');
+  }
+
+  const { data: project, error: projectError } = await supabase
+    .from(TABLES.projects)
+    .select('id')
+    .eq('id', projectId)
+    .maybeSingle();
+  if (projectError || !project) {
+    throw new Error('Projeto não encontrado.');
+  }
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const safeName = sanitizeFileName(file.name || 'checklist-arquivo');
-  const filePath = `client-checklists/${projectId}/${timestamp}-${safeName}`;
+  const filePath = `projects/${projectId}/checklists/${timestamp}-${safeName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabase.storage.from(publicEnv.projectDocumentsBucket).upload(filePath, buffer, {
@@ -749,7 +661,7 @@ export const getClientPortalSnapshotByUserId = async (userId: string): Promise<C
         messagesRes.error?.message ||
         documentsRes.error?.message ||
         checklistRes.error?.message ||
-        'Nao foi possivel carregar o portal do cliente.',
+        'Não foi possível carregar o portal do cliente.',
     );
   }
 
@@ -1045,7 +957,7 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
       });
 
       if (authError || !authUser.user) {
-        throw new Error(authError?.message || 'Nao foi possivel criar o acesso do cliente.');
+        throw new Error(authError?.message || 'Não foi possível criar o acesso do cliente.');
       }
 
       authUserId = authUser.user.id;
@@ -1090,7 +1002,7 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
 
     if (clientError) throw new Error(clientError.message);
     const clientAccessRow = (clientRow || null) as ClientRow | null;
-    if (!clientAccessRow?.user_id) throw new Error('Esse cliente ainda nao possui acesso criado.');
+    if (!clientAccessRow?.user_id) throw new Error('Esse cliente ainda não possui acesso criado.');
 
     const temporaryPassword = payload.password?.trim() || generateTemporaryPassword();
     const { error } = await supabase.auth.admin.updateUserById(String(clientAccessRow.user_id), {
@@ -1157,7 +1069,7 @@ export const runOfficialWorkspaceAction = async (payload: WorkspaceActionPayload
 
     if (stageError) throw new Error(stageError.message);
     const stage = (stageRow || null) as StageRow | null;
-    if (!stage) throw new Error('Etapa nao encontrada.');
+    if (!stage) throw new Error('Etapa não encontrada.');
 
     const completedAt = new Date().toISOString();
     const { error: updateError } = await supabase
